@@ -1,6 +1,7 @@
 # claudecn
 
-A claude ai service base AWS bedrock.
+A claude ai service base AWS bedrock. 
+Base Django frame work 
 
 **Project  demo**
 
@@ -53,25 +54,14 @@ Mobile chat history  page
 
 
 
-## Project setup
+## Project install 
 ```
-npm install
-```
-
-### Compiles and hot-reloads for development
-```
-npm run serve
+pip install -r requirements.txt
 ```
 
-### Compiles and minifies for production
+### Project run
 ```
-npm run build
-```
-
-### Lints and fixes files
-```
-npm run lint
+python manage runserver  0.0.0.0:8000
 ```
 
-### Customize configuration
-See [Configuration Reference](https://cli.vuejs.org/config/).
+
