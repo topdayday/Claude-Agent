@@ -1,6 +1,6 @@
 # claudecn
 
-
+A claude ai service base AWS bedrock.
 
 **Project  demo**
 
@@ -28,7 +28,7 @@ PC chat page
 
 PC chat history page
 
-![](https://github.com/topdayday/Claude-Agent-Front/blob/main/readme_img/pc_his.png)
+![](https://github.com/topdayday/Claude-Agent-Front/blob/main/readme_img/pc_record.png)
 
 
 
@@ -46,7 +46,7 @@ Mobile chat page
 
 Mobile chat history  page
 
-![](https://github.com/topdayday/Claude-Agent-Front/blob/main/readme_img/m_his.jpg)
+![](https://github.com/topdayday/Claude-Agent-Front/blob/main/readme_img/m_record.jpg)
 
 
 
