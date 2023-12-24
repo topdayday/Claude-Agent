@@ -1,7 +1,7 @@
 # claudecn
 
 A claude ai service base AWS bedrock. 
-Base Django frame work 
+and used Django frame work 
 
 **Project  demo**
 
