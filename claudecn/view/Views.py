@@ -128,7 +128,7 @@ def member_edit(request):
     if not password:
         return JsonResponse({'code': 1, 'data': '旧密码不能为空！'})
     m_id = token_info['id']
-    members = Member.objects.filter(id=m_id, password=password)
+    members = Member.objects.filter(id=m_id, password=get_md5(password))
     if not members:
         return JsonResponse({'code': 1, 'data': '旧密码不正确！'})
     mobile = request.POST.get('mobile')
@@ -183,7 +183,7 @@ def login(request):
     md5_pwd = get_md5(password)
     members = Member.objects.filter(login_name=login_name, password=md5_pwd)
     if members:
-        members = Member.objects.filter(login_name=login_name).update(last_login_time=now)
+        Member.objects.filter(login_name=login_name).update(last_login_time=now)
         token = obtain_jwt_token(members[0])
         session_id = generate_api_token()
         data ={"token": token, "session_id": session_id}
