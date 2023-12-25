@@ -2,21 +2,13 @@ from claudecn.utils.Conversation import start_conversation,translate_conversatio
 from claudecn.utils.JwtTool import obtain_jwt_token,protected_view,generate_api_token
 from claudecn.utils.CaptchaBase64 import captcha_base64
 from django.http import JsonResponse
-import json
-from django.conf import settings
 from django.views.decorators.csrf import csrf_exempt
 import markdown
-from claudecn.model.Models import Conversation,Member
-
-from django.http import HttpResponse
+import hashlib
 from django.views.decorators.http import require_http_methods
 from claudecn.model.Models import Conversation, Member, Captcha, ConversationSerializer, MemberSerializer
 from datetime import datetime, timedelta
-import secrets
-import string
-import jwt
-import pdb
-from django.db.models import Subquery, OuterRef, Min
+from django.db.models import Subquery, Min
 from django.utils import timezone
 
 
@@ -26,16 +18,27 @@ md = markdown.Markdown(extensions=[
 ])
 
 
+def get_md5(string):
+    md5 = hashlib.md5()
+    md5.update(string.encode())
+    return md5.hexdigest()
+
+
+def get_token_info(request):
+    token = request.POST.get('token')
+    token_info = protected_view(token)
+    return token_info
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def assistant(request):
     content_in = request.POST.get('content_in')
     session_id = request.POST.get('session_id')
     model_type = request.POST.get('model_type')
-    token = request.POST.get('token')
-    token_info = protected_view(token)
+    token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': 0, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     member_id = token_info['id']
     records = Conversation.objects.filter(session_id=session_id)[:3]
     conversation_his = translate_conversation_his(records)
@@ -55,10 +58,9 @@ def assistant(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def latest_session(request):
-    token = request.POST.get('token')
-    token_info = protected_view(token)
+    token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': 1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     m_id = token_info['id']
     subquery = Conversation.objects.filter(member_id=m_id, del_flag=0).values('session_id').annotate(min_id=Min('id')).values('min_id')
     conversations = Conversation.objects.filter(id__in=Subquery(subquery))
@@ -71,10 +73,9 @@ def latest_session(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def list_session(request):
-    token = request.POST.get('token')
-    token_info = protected_view(token)
+    token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': 1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     s_id = request.POST.get('session_id')
     if not s_id:
         return JsonResponse({'code': 1, 'data':  '会话ID不存在！'})
@@ -91,10 +92,9 @@ def list_session(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def del_session(request):
-    token = request.POST.get('token')
-    token_info = protected_view(token)
+    token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': 1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     s_id = request.POST.get('session_id')
     if not s_id:
         return JsonResponse({'code': 1, 'data':  '会话ID不存在！'})
@@ -106,10 +106,9 @@ def del_session(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def member_info(request):
-    token = request.POST.get('token')
-    token_info = protected_view(token)
+    token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': 1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     m_id = token_info['id']
     records = Member.objects.filter(id=m_id)
     records.password = '*******'
@@ -122,10 +121,9 @@ def member_info(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def member_edit(request):
-    token = request.POST.get('token')
-    token_info = protected_view(token)
+    token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': 1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     password = request.POST.get('password')
     if not password:
         return JsonResponse({'code': 1, 'data': '旧密码不能为空！'})
@@ -139,7 +137,8 @@ def member_edit(request):
     members.email = email
     new_password = request.POST.get('new_password')
     if new_password:
-        Member.objects.filter(id=m_id).update(mobile=mobile,email=email,password=new_password)
+        md5_pwd = get_md5(new_password)
+        Member.objects.filter(id=m_id).update(mobile=mobile,email=email,password=md5_pwd)
     else:
         Member.objects.filter(id=m_id).update(mobile=mobile, email=email)
     members.password = '*******'
@@ -151,10 +150,9 @@ def member_edit(request):
 @csrf_exempt
 @require_http_methods(["POST"])
 def generate_session(request):
-    token = request.POST.get('token')
-    token_info = protected_view(token)
+    token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': 1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     session_id = generate_api_token()
     return JsonResponse({'code': 0, 'data': session_id})
 
@@ -182,8 +180,10 @@ def login(request):
     if cc == 0:
         return JsonResponse({'code': 1, 'data': '图片验证码错误！'})
     Captcha.objects.filter(captcha_text=captcha).delete()
-    members = Member.objects.filter(login_name=login_name, password=password)
+    md5_pwd = get_md5(password)
+    members = Member.objects.filter(login_name=login_name, password=md5_pwd)
     if members:
+        members = Member.objects.filter(login_name=login_name).update(last_login_time=now)
         token = obtain_jwt_token(members[0])
         session_id = generate_api_token()
         data ={"token": token, "session_id": session_id}
@@ -214,6 +214,7 @@ def register(request):
     if members:
         return JsonResponse({'code': 1, 'data': '用户名已存在，请更更换！'})
     else:
-        record = Member(login_name=login_name, password=password, create_time= datetime.now())
+        md5_pwd = get_md5(password)
+        record = Member(login_name=login_name, password=md5_pwd, create_time= datetime.now())
         record.save()
         return JsonResponse({'code': 0, 'data': '注册成功，请登录！'})
