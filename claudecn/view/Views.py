@@ -43,9 +43,9 @@ def assistant(request):
     records = Conversation.objects.filter(session_id=session_id)[:1]
     conversation_his = translate_conversation_his(records)
     if content_in and session_id:
-        if model_type == '0' or model_type == '1':
+        if str(model_type) == '0' or str(model_type) == '1':
             content_out = start_conversation(content_in, conversation_his, model_type)
-        elif model_type == '2':
+        elif str(model_type) == '2':
             previous_content_in = ''
             # if records:
             #     previous_content_in = records[0].content_in
@@ -55,7 +55,7 @@ def assistant(request):
             return JsonResponse({'code': 1, 'data': '参数错误'})
         content_in = content_in.replace('\n', '<br>')
         record = Conversation(member_id=member_id, session_id=session_id, content_in=content_in,
-                              content_out=content_out,
+                              content_out=content_out,model_type= model_type,
                               create_time=datetime.now())
         record.save()
         html_out = md.convert(record.content_out)

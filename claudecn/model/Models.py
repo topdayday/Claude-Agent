@@ -9,6 +9,7 @@ class Conversation(models.Model):
     content_in = models.TextField(blank=True)
     content_out = models.TextField(blank=True)
     create_time = models.DateTimeField(null=True, blank=True)
+    model_type = models.PositiveSmallIntegerField(default=0)
     del_flag = models.BooleanField(default=False)
 
     class Meta:
