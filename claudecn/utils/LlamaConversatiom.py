@@ -23,7 +23,6 @@ def start_llama_conversation(input_content):
         response = bedrock.invoke_model(body=body, modelId=claude_model)
         response_body = json.loads(response.get("body").read().decode('utf-8'))
         output_content = response_body.get("generation")
-        output_content = output_content.replace('\n', "<br>")
     except BaseException as e:
         print(e.args)
     return output_content
