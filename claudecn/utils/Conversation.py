@@ -27,10 +27,10 @@ def format_chat_history(content_in, content_out):
     return previous_chat_history
 
 
-def start_conversation(input_content, previous_chat_history, model_type=0):
+def start_conversation(input_content, previous_chat_history, model_type='0'):
     claude_model = model_data[0]['model_id']
     claude_model_version = model_data[0]['version']
-    if model_type == 1:
+    if str(model_type) == '1':
         claude_model = model_data[1]['model_id']
         claude_model_version = model_data[1]['version']
     if previous_chat_history:

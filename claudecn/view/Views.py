@@ -50,7 +50,8 @@ def assistant(request):
             # if records:
             #     previous_content_in = records[0].content_in
             content_out = gemini_content(content_in, previous_content_in)
-            print('content_out' + model_type)
+            if not content_out:
+                return JsonResponse({'code': 1, 'data': '服务器终止了请求，请检查你输入的内容'})
         else:
             return JsonResponse({'code': 1, 'data': '参数错误'})
         content_in = content_in.replace('\n', '<br>')
