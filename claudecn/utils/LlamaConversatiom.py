@@ -3,7 +3,7 @@ import json
 
 model_data =[
     {
-        "model_id": "meta.llama2-70b-chat-v1",
+        "model_id": "meta.llama2-13b-chat-v1",
     },
 ]
 
