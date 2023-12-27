@@ -14,7 +14,7 @@ def start_llama_conversation(input_content):
     claude_model = model_data[0]['model_id']
     body = json.dumps({
         "prompt": input_content,
-        "max_gen_len": 512,
+        "max_gen_len": 2048,
         "temperature": 0.2,
         "top_p": 0.9
     })
@@ -27,8 +27,6 @@ def start_llama_conversation(input_content):
     except BaseException as e:
         print(e.args)
     return output_content
-
-
 
 
 

@@ -41,7 +41,6 @@ def assistant(request):
         return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     member_id = token_info['id']
     if content_in and session_id:
-        content_out = ''
         if str(model_type) == '0' or str(model_type) == '1':
             records = Conversation.objects.filter(session_id=session_id)[:2]
             previous_content_in = translate_conversation_his(records)
@@ -51,8 +50,7 @@ def assistant(request):
             content_out = gemini_content(content_in, previous_content_in)
 
         elif str(model_type) == '10':
-            previous_content_in = ''
-            content_out = start_llama_conversation(content_in, previous_content_in)
+            content_out = start_llama_conversation(content_in)
         else:
             return JsonResponse({'code': 1, 'data': '参数错误'})
 
