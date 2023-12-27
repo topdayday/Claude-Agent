@@ -48,9 +48,13 @@ def start_conversation(input_content, previous_chat_history, model_type='0'):
             "max_tokens_to_sample": 10000,
             "anthropic_version": claude_model_version
         })
-    response = bedrock.invoke_model(body=body, modelId=claude_model)
-    response_body = json.loads(response.get("body").read())
-    output_content = response_body.get("completion")
+    output_content = ''
+    try:
+        response = bedrock.invoke_model(body=body, modelId=claude_model)
+        response_body = json.loads(response.get("body").read())
+        output_content = response_body.get("completion")
+    except BaseException as e:
+        print(e.args)
     return output_content
 
 

@@ -21,4 +21,3 @@ def gemini_content(content_in, previous_content_in):
     return message_out_txt
 
 
-

@@ -10,7 +10,7 @@ from claudecn.model.Models import Conversation, Member, Captcha, ConversationSer
 from datetime import datetime, timedelta
 from django.db.models import Subquery, Min
 from claudecn.utils.GeminiConversatiom import gemini_content
-
+from claudecn.utils.LlamaConversatiom import start_llama_conversation
 
 md = markdown.Markdown(extensions=[
     'markdown.extensions.fenced_code',
@@ -40,20 +40,24 @@ def assistant(request):
     if not token_info:
         return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     member_id = token_info['id']
-    records = Conversation.objects.filter(session_id=session_id)[:1]
-    conversation_his = translate_conversation_his(records)
     if content_in and session_id:
+        content_out = ''
         if str(model_type) == '0' or str(model_type) == '1':
-            content_out = start_conversation(content_in, conversation_his, model_type)
+            records = Conversation.objects.filter(session_id=session_id)[:2]
+            previous_content_in = translate_conversation_his(records)
+            content_out = start_conversation(content_in, previous_content_in, model_type)
         elif str(model_type) == '2':
             previous_content_in = ''
-            # if records:
-            #     previous_content_in = records[0].content_in
             content_out = gemini_content(content_in, previous_content_in)
-            if not content_out:
-                return JsonResponse({'code': 1, 'data': '服务器终止了请求，请检查你输入的内容'})
+
+        elif str(model_type) == '10':
+            previous_content_in = ''
+            content_out = start_llama_conversation(content_in, previous_content_in)
         else:
             return JsonResponse({'code': 1, 'data': '参数错误'})
+
+        if not content_out:
+            return JsonResponse({'code': 1, 'data': '服务器终止了请求，请检查你输入的内容是否符合审查'})
         content_in = content_in.replace('\n', '<br>')
         record = Conversation(member_id=member_id, session_id=session_id, content_in=content_in,
                               content_out=content_out,model_type= model_type,
