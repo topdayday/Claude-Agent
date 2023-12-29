@@ -1,6 +1,6 @@
-# claudecn
+# T2Day AI Agent
 
-A claude ai service base AWS bedrock. 
+Ai service base AWS bedrock. supert claude Llama Gemini , etc...
 and used Django frame work 
 
 **Project  demo**
