@@ -13,7 +13,7 @@ def random_color():
 
 
 def captcha_base64():
-    chars = 'ABCDEFGHJKLMNPQRSTWXYZabcdefhijkmnprstwxyz2345678'
+    chars = 'ABDEGHLMNQRTabdeghimnrst2345678'
     code = ''
     for i in range(4):
         code += random.choice(chars)
