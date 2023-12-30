@@ -40,6 +40,12 @@ def assistant(request):
     if not token_info:
         return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     member_id = token_info['id']
+    midnight_datetime = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    count = Conversation.objects.filter(create_time__gte=midnight_datetime).count()
+    if count > 10:
+        m_count = Member.objects.filter(id=member_id, vip_level__gt=0).count()
+        if m_count == 0:
+            return JsonResponse({'code': 1, 'data': '今日次数已用完，明天再来吧！'})
     if content_in and session_id:
         if str(model_type) == '0' or str(model_type) == '1':
             records = Conversation.objects.filter(session_id=session_id)[:2]
