@@ -83,7 +83,7 @@ def latest_session(request):
     m_id = token_info['id']
     subquery = Conversation.objects.filter(member_id=m_id, del_flag=0).values('session_id').annotate(min_id=Min('id')).values('min_id')
     conversations = Conversation.objects.filter(id__in=Subquery(subquery))
-    records = conversations.order_by('-id')[:30]
+    records = conversations.order_by('-id')[:50]
     conversations_serializer = ConversationSerializer(records, many=True)
     conversations_json = conversations_serializer.data
     return JsonResponse({'code': 0, 'data':  conversations_json})
