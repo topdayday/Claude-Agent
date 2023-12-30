@@ -1,8 +1,5 @@
 # T2Day AI Agent
-
-Ai service base AWS bedrock. supert claude Llama Gemini , etc...
-and used Django frame work 
-
+Ai agent service base AWS bedrock, suport Google Gemini, Meta Llama2 70B, Anthropic Claude2.1
 **Project  demo**
 
 https://ai.topdayday.com
