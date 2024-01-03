@@ -14,7 +14,20 @@ from claudecn.utils.LlamaConversatiom import start_llama_conversation
 
 md = markdown.Markdown(extensions=[
     'markdown.extensions.fenced_code',
-    'markdown.extensions.codehilite'
+    'markdown.extensions.codehilite',
+    'markdown.extensions.abbr',
+    'markdown.extensions.admonition',
+    'markdown.extensions.attr_list',
+    # 'markdown.extensions.autolink',
+    'markdown.extensions.def_list',
+    'markdown.extensions.footnotes',
+    # 'markdown.extensions.headerid',
+    'markdown.extensions.meta',
+    'markdown.extensions.nl2br',
+    # 'markdown.extensions.oauth2',
+    'markdown.extensions.tables',
+    'markdown.extensions.toc',
+    'markdown.extensions.wikilinks',
 ])
 
 
