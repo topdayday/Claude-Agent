@@ -91,12 +91,15 @@ def assistant(request):
 @require_http_methods(["POST"])
 def latest_session(request):
     token_info = get_token_info(request)
+    page_number = request.POST.get('page_number')
+    if not page_number:
+        page_number = 0
     if not token_info:
         return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     m_id = token_info['id']
     subquery = Conversation.objects.filter(member_id=m_id, del_flag=0).values('session_id').annotate(min_id=Min('id')).values('min_id')
     conversations = Conversation.objects.filter(id__in=Subquery(subquery))
-    records = conversations.order_by('-id')[:50]
+    records = conversations.order_by('-id')[page_number*30:(page_number+1)*30]
     conversations_serializer = ConversationSerializer(records, many=True)
     conversations_json = conversations_serializer.data
     return JsonResponse({'code': 0, 'data':  conversations_json})
@@ -132,6 +135,20 @@ def del_session(request):
         return JsonResponse({'code': 1, 'data':  '会话ID不存在！'})
     m_id = token_info['id']
     Conversation.objects.filter(member_id=m_id,session_id=s_id).update(del_flag=1)
+    return JsonResponse({'code': 0, 'data':  'success'})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def del_conversation(request):
+    token_info = get_token_info(request)
+    if not token_info:
+        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
+    c_id = request.POST.get('conversation_id')
+    if not c_id:
+        return JsonResponse({'code': 1, 'data':  '对话ID不存在！'})
+    m_id = token_info['id']
+    Conversation.objects.filter(member_id=m_id,id=c_id).update(del_flag=1)
     return JsonResponse({'code': 0, 'data':  'success'})
 
 
