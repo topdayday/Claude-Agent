@@ -94,6 +94,11 @@ def latest_session(request):
     page_number = request.POST.get('page_number')
     if not page_number:
         page_number = 0
+    try:
+        page_number = int(page_number)
+    except BaseException as be:
+        print(be.args)
+        return JsonResponse({'code': 1, 'data': '对话页码参数错误！'})
     if not token_info:
         return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     m_id = token_info['id']
@@ -147,6 +152,11 @@ def del_conversation(request):
     c_id = request.POST.get('conversation_id')
     if not c_id:
         return JsonResponse({'code': 1, 'data':  '对话ID不存在！'})
+    try:
+        c_id = int(c_id)
+    except BaseException as be:
+        print(be.args)
+        return JsonResponse({'code': 1, 'data': '对话ID参数错误！'})
     m_id = token_info['id']
     Conversation.objects.filter(member_id=m_id,id=c_id).update(del_flag=1)
     return JsonResponse({'code': 0, 'data':  'success'})
