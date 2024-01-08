@@ -28,5 +28,6 @@ urlpatterns = [
     path('cnaude/generate_session/', generate_session),
     path('cnaude/register/', register),
     path('cnaude/member_edit/', member_edit),
+    path('cnaude/del_conversation/', del_conversation),
 
 ]
