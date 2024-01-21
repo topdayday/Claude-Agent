@@ -149,7 +149,7 @@ def del_conversation(request):
     token_info = get_token_info(request)
     if not token_info:
         return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
-    c_id = request.POST.get('conversation_id')
+    c_id = request.POST.get('c_id')
     if not c_id:
         return JsonResponse({'code': 1, 'data':  '对话ID不存在！'})
     try:
