@@ -61,7 +61,7 @@ def assistant(request):
             return JsonResponse({'code': 1, 'data': '今日次数已用完，明天再来吧！'})
     if content_in and session_id:
         if str(model_type) == '0' or str(model_type) == '1':
-            records = Conversation.objects.filter(session_id=session_id)[:2]
+            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:2]
             previous_content_in = translate_conversation_his(records)
             content_out = start_conversation(content_in, previous_content_in, model_type)
         elif str(model_type) == '2':
