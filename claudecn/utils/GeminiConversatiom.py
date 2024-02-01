@@ -5,8 +5,8 @@ from vertexai.preview.generative_models import GenerativeModel
 def gemini_content(content_in, previous_content_in):
     config = {
         "max_output_tokens": 2048,
-        "temperature": 0.8,
-        "top_p": 0.8
+        "temperature": 0.9,
+        "top_p": 0.6,
     }
     message_out_txt = ''
     model = GenerativeModel("gemini-pro")

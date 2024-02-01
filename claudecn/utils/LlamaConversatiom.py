@@ -3,7 +3,7 @@ import json
 
 model_data =[
     {
-        "model_id": "meta.llama2-13b-chat-v1",
+        "model_id": "meta.llama2-70b-chat-v1",
     },
 ]
 
@@ -15,8 +15,8 @@ def start_llama_conversation(input_content):
     body = json.dumps({
         "prompt": input_content,
         "max_gen_len": 2048,
-        "temperature": 0.2,
-        "top_p": 0.9
+        "temperature": 0.9,
+        "top_p": 0.6,
     })
     output_content = ''
     try:

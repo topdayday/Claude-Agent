@@ -38,14 +38,20 @@ def start_conversation(input_content, previous_chat_history, model_type='0'):
             "prompt": "\n\nHuman: " + previous_chat_history +
                       "\n\nHuman: " + input_content +
                       "\n\nAssistant:",
+            "temperature": 0.9,
             "max_tokens_to_sample": 10000,
+            "top_k": 250,
+            "top_p": 0.6,
             "anthropic_version": claude_model_version
         })
     else:
         body = json.dumps({
             "prompt": "\n\nHuman: " + input_content +
                       "\n\nAssistant:",
+            "temperature": 0.9,
             "max_tokens_to_sample": 10000,
+            "top_k": 250,
+            "top_p": 0.6,
             "anthropic_version": claude_model_version
         })
     output_content = ''
