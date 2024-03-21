@@ -1,4 +1,4 @@
-from claudecn.utils.Claude2 import start_conversation,translate_conversation_his
+from claudecn.llm.Claude2 import start_conversation,translate_conversation_his
 from claudecn.utils.JwtTool import obtain_jwt_token,protected_view,generate_api_token
 from claudecn.utils.Captcha import captcha_base64
 from django.http import JsonResponse
@@ -9,8 +9,8 @@ from django.views.decorators.http import require_http_methods
 from claudecn.model.Models import Conversation, Member, Captcha, ConversationSerializer, MemberSerializer
 from datetime import datetime, timedelta
 from django.db.models import Subquery, Min
-from claudecn.utils.Gemini import gemini_content
-from claudecn.utils.Llama import start_llama_conversation
+from claudecn.llm import gemini_content
+from claudecn.llm.Llama import start_llama_conversation
 
 md = markdown.Markdown(extensions=[
     'markdown.extensions.fenced_code',
