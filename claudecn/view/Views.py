@@ -1,7 +1,7 @@
 from claudecn.llm.Claude2 import start_conversation_claude2,translate_conversation_his_v2
 from claudecn.llm.Claude3 import start_conversation_claude3,translate_conversation_his_v3
 from claudecn.llm.Gemini import start_conversation_gemini
-from claudecn.llm.Llama import start_llama_conversation
+from claudecn.llm.Llama import start_conversation_llama
 from claudecn.llm.Mistral import start_conversation_mistral
 
 from claudecn.utils.JwtTool import obtain_jwt_token,protected_view,generate_api_token
@@ -80,7 +80,7 @@ def assistant(request):
             previous_content_in = ''
             content_out = start_conversation_mistral(content_in, previous_content_in)
         elif m_type == '10':
-            content_out = start_llama_conversation(content_in)
+            content_out = start_conversation_llama(content_in)
         else:
             return JsonResponse({'code': 1, 'data': '参数错误'})
 

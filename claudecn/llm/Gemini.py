@@ -22,3 +22,6 @@ def start_conversation_gemini(content_in, previous_content_in):
     return message_out_txt
 
 
+if __name__ == '__main__':
+    output = start_conversation_gemini('what is your name ?', None)
+    print(output)

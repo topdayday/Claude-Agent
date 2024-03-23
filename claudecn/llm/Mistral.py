@@ -34,7 +34,7 @@ def start_conversation_mistral(input_content):
 
 
 if __name__ == '__main__':
-    output = start_conversation_mistral('用java实现快速排序算法')
+    output = start_conversation_mistral('what is your name ?')
     print(output)
 
 

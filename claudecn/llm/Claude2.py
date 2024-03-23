@@ -57,7 +57,9 @@ def start_conversation_claude2(input_content, previous_chat_history):
     return output_content
 
 
-
+if __name__ == '__main__':
+    output = start_conversation_claude2('what is your name ?', None)
+    print(output)
 
 
 

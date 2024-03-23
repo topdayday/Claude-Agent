@@ -10,7 +10,7 @@ model_data =[
 bedrock = boto3.client(service_name="bedrock-runtime", region_name="us-west-2")
 
 
-def start_llama_conversation(input_content):
+def start_conversation_llama(input_content):
     claude_model = model_data[0]['model_id']
     body = json.dumps({
         "prompt": input_content,
@@ -28,7 +28,9 @@ def start_llama_conversation(input_content):
     return output_content
 
 
-
+if __name__ == '__main__':
+    output = start_conversation_llama('what is your name ?', None)
+    print(output)
 
 
 
