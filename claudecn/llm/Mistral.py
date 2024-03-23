@@ -13,7 +13,7 @@ model_data =[
 bedrock = boto3.client(service_name="bedrock-runtime", region_name="us-west-2")
 
 
-def start_conversation(input_content):
+def start_conversation_mistral(input_content):
     claude_model = model_data[0]['model_id']
     body = json.dumps({
         "prompt": "<s>[INST] %s [/INST]" % input_content,
@@ -34,7 +34,7 @@ def start_conversation(input_content):
 
 
 if __name__ == '__main__':
-    output = start_conversation('用java实现快速排序算法')
+    output = start_conversation_mistral('用java实现快速排序算法')
     print(output)
 
 

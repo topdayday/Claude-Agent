@@ -1,4 +1,9 @@
-from claudecn.llm.Claude2 import start_conversation,translate_conversation_his
+from claudecn.llm.Claude2 import start_conversation_claude2,translate_conversation_his_v2
+from claudecn.llm.Claude3 import start_conversation_claude3,translate_conversation_his_v3
+from claudecn.llm.Gemini import start_conversation_gemini
+from claudecn.llm.Llama import start_llama_conversation
+from claudecn.llm.Mistral import start_conversation_mistral
+
 from claudecn.utils.JwtTool import obtain_jwt_token,protected_view,generate_api_token
 from claudecn.utils.Captcha import captcha_base64
 from django.http import JsonResponse
@@ -9,8 +14,7 @@ from django.views.decorators.http import require_http_methods
 from claudecn.model.Models import Conversation, Member, Captcha, ConversationSerializer, MemberSerializer
 from datetime import datetime, timedelta
 from django.db.models import Subquery, Min
-from claudecn.llm import gemini_content
-from claudecn.llm.Llama import start_llama_conversation
+
 
 md = markdown.Markdown(extensions=[
     'markdown.extensions.fenced_code',
@@ -59,16 +63,23 @@ def assistant(request):
         m_count = Member.objects.filter(id=member_id, vip_level__gt=0).count()
         if m_count == 0:
             return JsonResponse({'code': 1, 'data': '今日次数已用完，明天再来吧！'})
+    m_type = str(model_type);
     if content_in and session_id:
-        if str(model_type) == '0' or str(model_type) == '1':
+        if m_type == '0':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:2]
-            previous_content_in = translate_conversation_his(records)
-            content_out = start_conversation(content_in, previous_content_in, model_type)
-        elif str(model_type) == '2':
+            previous_content_in = translate_conversation_his_v2(records)
+            content_out = start_conversation_claude2(content_in, previous_content_in)
+        elif m_type == '1':
+            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:2]
+            previous_content_in = translate_conversation_his_v3(records)
+            content_out = start_conversation_claude3(content_in, previous_content_in)
+        elif m_type == '2':
             previous_content_in = ''
-            content_out = gemini_content(content_in, previous_content_in)
-
-        elif str(model_type) == '10':
+            content_out = start_conversation_gemini(content_in, previous_content_in)
+        elif m_type == '3':
+            previous_content_in = ''
+            content_out = start_conversation_mistral(content_in, previous_content_in)
+        elif m_type == '10':
             content_out = start_llama_conversation(content_in)
         else:
             return JsonResponse({'code': 1, 'data': '参数错误'})

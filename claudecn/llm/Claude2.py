@@ -3,10 +3,6 @@ import json
 
 model_data =[
     {
-        "model_id": "anthropic.claude-instant-v1",
-        "version": "bedrock-2023-05-31",
-    },
-    {
         "model_id": "anthropic.claude-v2:1",
         "version": "bedrock-2023-05-31",
     },
@@ -15,7 +11,7 @@ model_data =[
 bedrock = boto3.client(service_name="bedrock-runtime", region_name="us-west-2")
 
 
-def translate_conversation_his(contents):
+def translate_conversation_his_v2(contents):
     his = ''
     for content in contents:
         his += format_chat_history(content.content_in, content.content_out)
@@ -27,12 +23,9 @@ def format_chat_history(content_in, content_out):
     return previous_chat_history
 
 
-def start_conversation(input_content, previous_chat_history, model_type='0'):
+def start_conversation_claude2(input_content, previous_chat_history):
     claude_model = model_data[0]['model_id']
     claude_model_version = model_data[0]['version']
-    if str(model_type) == '1':
-        claude_model = model_data[1]['model_id']
-        claude_model_version = model_data[1]['version']
     if previous_chat_history:
         body = json.dumps({
             "prompt": "\n\nHuman: " + previous_chat_history +

@@ -3,11 +3,11 @@ import json
 
 model_data =[
     {
-        "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
+        "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
         "version": "bedrock-2023-05-31",
     },
     {
-        "model_id": "anthropic.claude-3-sonnet-20240229-v1:0",
+        "model_id": "anthropic.claude-3-haiku-20240307-v1:0",
         "version": "bedrock-2023-05-31",
     },
 ]
@@ -15,7 +15,7 @@ model_data =[
 bedrock = boto3.client(service_name="bedrock-runtime", region_name="us-west-2")
 
 
-def translate_conversation_his(contents):
+def translate_conversation_his_v3(contents):
     chats_history = []
     for content in contents:
         chat_history = format_chat_history(content.content_in, content.content_out)
@@ -47,12 +47,9 @@ def format_chat_history(content_in, content_out):
     return chat_history
 
 
-def start_conversation(input_content, previous_chat_history, model_type='0'):
+def start_conversation_claude3(input_content, previous_chat_history):
     claude_model = model_data[0]['model_id']
     claude_model_version = model_data[0]['version']
-    if str(model_type) == '1':
-        claude_model = model_data[1]['model_id']
-        claude_model_version = model_data[1]['version']
     message = []
     if previous_chat_history:
         message.extend(previous_chat_history)
@@ -89,7 +86,7 @@ def start_conversation(input_content, previous_chat_history, model_type='0'):
 
 
 if __name__ == '__main__':
-    output = start_conversation('what is your name ?', None, 0)
+    output = start_conversation_claude3('what is your name ?', None, 0)
     print(output)
 
 
