@@ -1,19 +1,19 @@
-from claudecn.llm.Claude2 import start_conversation_claude2,translate_conversation_his_v2
-from claudecn.llm.Claude3 import start_conversation_claude3,translate_conversation_his_v3
-from claudecn.llm.Codey import start_conversation_codey
-from claudecn.llm.Gemini import start_conversation_gemini
-from claudecn.llm.Llama import start_conversation_llama
-from claudecn.llm.Mistral import start_conversation_mistral
-from claudecn.llm.PaLM2 import start_conversation_palm2
+from cnaude.llm.Claude2 import start_conversation_claude2,translate_conversation_his_v2
+from cnaude.llm.Claude3 import start_conversation_claude3,translate_conversation_his_v3
+from cnaude.llm.Codey import start_conversation_codey
+from cnaude.llm.Gemini import start_conversation_gemini
+from cnaude.llm.Llama import start_conversation_llama
+from cnaude.llm.Mistral import start_conversation_mistral
+from cnaude.llm.PaLM2 import start_conversation_palm2
 
-from claudecn.utils.JwtTool import obtain_jwt_token,protected_view,generate_api_token
-from claudecn.utils.Captcha import captcha_base64
+from cnaude.utils.JwtTool import obtain_jwt_token,protected_view,generate_api_token
+from cnaude.utils.Captcha import captcha_base64
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import markdown
 import hashlib
 from django.views.decorators.http import require_http_methods
-from claudecn.model.Models import Conversation, Member, Captcha, ConversationSerializer, MemberSerializer
+from cnaude.model.Models import Conversation, Member, Captcha, ConversationSerializer, MemberSerializer
 from datetime import datetime, timedelta
 from django.db.models import Subquery, Min
 
