@@ -22,12 +22,12 @@ def start_conversation_mistral(input_content):
         "top_p": 0.9,
         "top_k": 50,
     })
-    print(body)
     output_content = ''
     try:
         response = bedrock.invoke_model(body=body, modelId=claude_model)
         response_body = json.loads(response.get("body").read().decode('utf-8'))
         output_content = response_body.get("outputs")
+        output_content = output_content[0]['text']
     except BaseException as e:
         print(e.args)
     return output_content

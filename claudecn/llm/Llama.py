@@ -29,7 +29,7 @@ def start_conversation_llama(input_content):
 
 
 if __name__ == '__main__':
-    output = start_conversation_llama('what is your name ?', None)
+    output = start_conversation_llama('what is your name ?')
     print(output)
 
 
