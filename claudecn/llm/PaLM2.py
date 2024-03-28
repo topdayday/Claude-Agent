@@ -1,5 +1,6 @@
 from vertexai.language_models import TextGenerationModel
 
+
 def start_conversation_palm2(content_in):
     parameters = {
         "candidate_count": 1,

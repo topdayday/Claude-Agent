@@ -1,8 +1,10 @@
 from claudecn.llm.Claude2 import start_conversation_claude2,translate_conversation_his_v2
 from claudecn.llm.Claude3 import start_conversation_claude3,translate_conversation_his_v3
+from claudecn.llm.Codey import start_conversation_codey
 from claudecn.llm.Gemini import start_conversation_gemini
 from claudecn.llm.Llama import start_conversation_llama
 from claudecn.llm.Mistral import start_conversation_mistral
+from claudecn.llm.PaLM2 import start_conversation_palm2
 
 from claudecn.utils.JwtTool import obtain_jwt_token,protected_view,generate_api_token
 from claudecn.utils.Captcha import captcha_base64
@@ -74,11 +76,13 @@ def assistant(request):
             previous_content_in = translate_conversation_his_v3(records)
             content_out = start_conversation_claude3(content_in, previous_content_in)
         elif m_type == '2':
-            previous_content_in = ''
-            content_out = start_conversation_gemini(content_in, previous_content_in)
+            content_out = start_conversation_gemini(content_in)
         elif m_type == '3':
-            previous_content_in = ''
-            content_out = start_conversation_mistral(content_in, previous_content_in)
+            content_out = start_conversation_mistral(content_in)
+        elif m_type == '4':
+            content_out = start_conversation_palm2(content_in)
+        elif m_type == '5':
+            content_out = start_conversation_codey(content_in)
         elif m_type == '10':
             content_out = start_conversation_llama(content_in)
         else:

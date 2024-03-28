@@ -16,7 +16,7 @@ model_data =[
 ]
 
 
-def start_conversation_codey(content_in, previous_content_in):
+def start_conversation_codey(content_in):
     parameters = {
         "candidate_count": 1,
         "max_output_tokens": 2024,
@@ -36,7 +36,7 @@ def start_conversation_codey(content_in, previous_content_in):
 
 
 if __name__ == '__main__':
-    output = start_conversation_codey('what is your name ?', None)
+    output = start_conversation_codey('what is your name ?')
     print(output)
 
 
