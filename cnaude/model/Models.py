@@ -60,7 +60,7 @@ class Captcha(models.Model):
 class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
-        fields = ('id','session_id', 'content_in',  'content_out', 'member_id', 'create_time')
+        fields = ('id','session_id', 'content_in',  'content_out', 'member_id',  'model_type', 'create_time')
 
 
 class MemberSerializer(serializers.ModelSerializer):
