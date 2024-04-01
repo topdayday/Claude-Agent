@@ -60,7 +60,7 @@ def assistant(request):
         return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     member_id = token_info['id']
     midnight_datetime = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    count = Conversation.objects.filter(create_time__gte=midnight_datetime).count()
+    count = Conversation.objects.filter(member_id=member_id, create_time__gte=midnight_datetime).count()
     if count > 10:
         m_count = Member.objects.filter(id=member_id, vip_level__gt=0).count()
         if m_count == 0:
