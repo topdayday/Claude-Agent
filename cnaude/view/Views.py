@@ -291,4 +291,10 @@ def register(request):
         md5_pwd = get_md5(password)
         record = Member(login_name=login_name, password=md5_pwd, create_time= datetime.now())
         record.save()
-        return JsonResponse({'code': 0, 'data': '注册成功，请登录！'})
+        members_signin = Member.objects.filter(login_name=login_name, password=md5_pwd)
+        data = {}
+        if members_signin:
+            token = obtain_jwt_token(members_signin[0])
+            session_id = generate_api_token()
+            data = {"token": token, "session_id": session_id}
+        return JsonResponse({'code': 0, 'data': data})
