@@ -282,7 +282,7 @@ def register(request):
     if cc == 0:
         return JsonResponse({'code': 1, 'data': '错误验证码！'})
     Captcha.objects.filter(captcha_text=captcha).delete()
-    if invite_code != 'top2tay' and invite_code != captcha+captcha+captcha:
+    if invite_code != 'top2day' and invite_code != captcha+captcha+captcha:
         return JsonResponse({'code': 1, 'data': '邀请码不存在！'})
     members = Member.objects.filter(login_name=login_name)
     if members:
