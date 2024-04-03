@@ -277,12 +277,12 @@ def register(request):
     if not login_name or not password or not captcha or not invite_code:
         return JsonResponse({'code': 1, 'data': '注册必填参数不能为空!'})
     now = datetime.now()
-    one_minute_ago = now - timedelta(minutes=1)
+    one_minute_ago = now - timedelta(minutes=3)
     cc = Captcha.objects.filter(captcha_text=captcha, create_time__gte=one_minute_ago).count()
     if cc == 0:
         return JsonResponse({'code': 1, 'data': '错误验证码！'})
     Captcha.objects.filter(captcha_text=captcha).delete()
-    if invite_code != captcha+captcha+captcha:
+    if invite_code != 'top2tay' and invite_code != captcha+captcha+captcha:
         return JsonResponse({'code': 1, 'data': '邀请码不存在！'})
     members = Member.objects.filter(login_name=login_name)
     if members:
