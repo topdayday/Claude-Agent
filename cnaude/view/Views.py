@@ -15,8 +15,8 @@ import hashlib
 from django.views.decorators.http import require_http_methods
 from cnaude.model.Models import Conversation, Member, Captcha, ConversationSerializer, MemberSerializer
 from datetime import datetime, timedelta
-from django.db.models import Subquery, Min
 
+session_count_cache = {}
 
 md = markdown.Markdown(extensions=[
     'markdown.extensions.fenced_code',
@@ -91,10 +91,15 @@ def assistant(request):
         if not content_out:
             return JsonResponse({'code': 1, 'data': '服务器终止了请求，请检查你输入的内容是否符合审查'})
         content_in = content_in.replace('\n', '<br>')
+        session_count = session_count_cache.get(session_id, 0)
+        title_flag = False
+        if session_count < 1 and Conversation.objects.filter(session_id=session_id).count() == 0:
+            title_flag = True
         record = Conversation(member_id=member_id, session_id=session_id, content_in=content_in,
-                              content_out=content_out,model_type= model_type,
+                              content_out=content_out, model_type= model_type, title_flag=title_flag,
                               create_time=datetime.now())
         record.save()
+        session_count_cache[session_id] = 1
         html_out = md.convert(record.content_out)
         record.content_out = html_out
         conversations_serializer = ConversationSerializer(record, many=False)
@@ -117,9 +122,9 @@ def latest_session(request):
     if not token_info:
         return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
     m_id = token_info['id']
-    subquery = Conversation.objects.filter(member_id=m_id, del_flag=0).values('session_id').annotate(min_id=Min('id')).values('min_id')
-    conversations = Conversation.objects.filter(id__in=Subquery(subquery))
-    records = conversations.order_by('-id')[page_number*30:(page_number+1)*30]
+    records = Conversation.objects.filter(member_id=m_id, del_flag=0, title_flag=True).order_by('-id')[page_number*30:(page_number+1)*30]
+    for record in records:
+        session_count_cache[record.session_id] = 1
     conversations_serializer = ConversationSerializer(records, many=True)
     conversations_json = conversations_serializer.data
     return JsonResponse({'code': 0, 'data':  conversations_json})
