@@ -55,7 +55,7 @@ models_data = [
 ]
 
 
-def start_conversation_gemini(content_in, model_index=3):
+def start_conversation_gemini(content_in, model_index=0):
     model_data = models_data[model_index]
     config = {
         "max_output_tokens": model_data['max_output_tokens'],
