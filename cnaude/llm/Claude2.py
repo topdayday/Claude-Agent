@@ -5,6 +5,8 @@ model_data =[
     {
         "model_id": "anthropic.claude-v2:1",
         "version": "bedrock-2023-05-31",
+        "max_output_tokens": 204800,
+        "name": "claude-2-1",
     },
 ]
 
@@ -24,8 +26,7 @@ def format_chat_history(content_in, content_out):
 
 
 def start_conversation_claude2(input_content, previous_chat_history):
-    claude_model = model_data[0]['model_id']
-    claude_model_version = model_data[0]['version']
+    claude_model = model_data[0]
     if previous_chat_history:
         body = json.dumps({
             "prompt": "\n\nHuman: " + previous_chat_history +
@@ -35,21 +36,21 @@ def start_conversation_claude2(input_content, previous_chat_history):
             "max_tokens_to_sample": 10000,
             "top_k": 250,
             "top_p": 0.6,
-            "anthropic_version": claude_model_version
+            "anthropic_version": claude_model['version']
         })
     else:
         body = json.dumps({
             "prompt": "\n\nHuman: " + input_content +
                       "\n\nAssistant:",
             "temperature": 0.9,
-            "max_tokens_to_sample": 10000,
+            "max_tokens_to_sample": claude_model['max_output_tokens'],
             "top_k": 250,
             "top_p": 0.6,
-            "anthropic_version": claude_model_version
+            "anthropic_version": claude_model['version']
         })
     output_content = ''
     try:
-        response = bedrock.invoke_model(body=body, modelId=claude_model)
+        response = bedrock.invoke_model(body=body, modelId=claude_model['model_id'])
         response_body = json.loads(response.get("body").read())
         output_content = response_body.get("completion")
     except BaseException as e:
