@@ -5,7 +5,7 @@ model_data =[
     {
         "model_id": "anthropic.claude-v2:1",
         "version": "bedrock-2023-05-31",
-        "max_output_tokens": 204800,
+        "max_output_tokens": 10240,
         "name": "claude-2-1",
     },
 ]
@@ -25,8 +25,8 @@ def format_chat_history(content_in, content_out):
     return previous_chat_history
 
 
-def start_conversation_claude2(input_content, previous_chat_history):
-    claude_model = model_data[0]
+def start_conversation_claude2(input_content, previous_chat_history, model_index=0):
+    claude_model = model_data[model_index]
     if previous_chat_history:
         body = json.dumps({
             "prompt": "\n\nHuman: " + previous_chat_history +

@@ -4,22 +4,22 @@ import json
 model_data =[
     {
         "model_id": "meta.llama3-70b-instruct-v1:0",
-        "max_output_tokens": 8192,
+        "max_output_tokens": 2048,
         "name": "llama3-70b",
     },
     {
         "model_id": "meta.llama3-8b-instruct-v1:0",
-        "max_output_tokens": 8192,
+        "max_output_tokens": 2048,
         "name": "llama3-8b",
     },
     {
         "model_id": "meta.llama2-70b-chat-v1",
-        "max_output_tokens": 4096,
+        "max_output_tokens": 2048,
         "name": "llama2-70b",
     },
     {
         "model_id": "meta.llama2-13b-chat-v1",
-        "max_output_tokens": 4096,
+        "max_output_tokens": 2048,
         "name": "llama2-13b",
     },
 ]
@@ -27,8 +27,8 @@ model_data =[
 bedrock = boto3.client(service_name="bedrock-runtime", region_name="us-west-2")
 
 
-def start_conversation_llama(input_content):
-    llama_model = model_data[0]
+def start_conversation_llama(input_content, model_index=0):
+    llama_model = model_data[model_index]
     body = json.dumps({
         "prompt": input_content,
         "max_gen_len": llama_model['max_output_tokens'],
