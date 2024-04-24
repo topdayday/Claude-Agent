@@ -1,6 +1,4 @@
-from vertexai.generative_models._generative_models import ResponseBlockedError
-from vertexai.language_models import TextGenerationModel
-from vertexai.language_models import ChatModel
+from vertexai.language_models import ChatModel, TextGenerationModel
 # temperature
 # 温度取值范围【0-1】
 # 温度可以控制词元选择的随机性。较低的温度适合希望获得真实或正确回复的提示，
@@ -49,7 +47,7 @@ def start_conversation_palm2(content_in='', previous_chat_history=[], model_inde
         message_out = chat.send_message(message=output_content_str, temperature=config['temperature'],
                                         max_output_tokens=config['max_output_tokens'])
         output_content = message_out.text
-    except ResponseBlockedError as e:
+    except BaseException as e:
         print(e.args)
     return output_content
 
