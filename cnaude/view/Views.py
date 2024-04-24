@@ -82,7 +82,9 @@ def assistant(request):
         elif m_type == '3':
             content_out = start_conversation_mistral(content_in)
         elif m_type == '4':
-            content_out = start_conversation_palm2(content_in)
+            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+            previous_content_in = translate_conversation_his_gemini(records)
+            content_out = start_conversation_palm2(content_in, previous_content_in)
         elif m_type == '5':
             content_out = start_conversation_codey(content_in)
         elif m_type == '10':
