@@ -25,7 +25,7 @@ def format_chat_history(content_in, content_out):
     return previous_chat_history
 
 
-def start_conversation_claude2(input_content, previous_chat_history, model_index=0):
+def start_conversation_claude2(input_content, previous_chat_history=[], model_index=0):
     claude_model = model_data[model_index]
     if previous_chat_history:
         body = json.dumps({

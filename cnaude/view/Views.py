@@ -1,7 +1,7 @@
-from cnaude.llm.Claude2 import start_conversation_claude2,translate_conversation_his_v2
-from cnaude.llm.Claude3 import start_conversation_claude3,translate_conversation_his_v3
+from cnaude.llm.Claude2 import start_conversation_claude2, translate_conversation_his_v2
+from cnaude.llm.Claude3 import start_conversation_claude3, translate_conversation_his_v3
 from cnaude.llm.Codey import start_conversation_codey
-from cnaude.llm.Gemini import start_conversation_gemini
+from cnaude.llm.Gemini import start_conversation_gemini, translate_conversation_his_gemini
 from cnaude.llm.Llama import start_conversation_llama
 from cnaude.llm.Mistral import start_conversation_mistral
 from cnaude.llm.PaLM2 import start_conversation_palm2
@@ -68,15 +68,17 @@ def assistant(request):
     m_type = str(model_type);
     if content_in and session_id:
         if m_type == '0':
-            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:2]
+            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_v2(records)
             content_out = start_conversation_claude2(content_in, previous_content_in)
         elif m_type == '1':
-            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:2]
+            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_v3(records)
             content_out = start_conversation_claude3(content_in, previous_content_in)
         elif m_type == '2':
-            content_out = start_conversation_gemini(content_in)
+            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+            previous_content_in = translate_conversation_his_gemini(records)
+            content_out = start_conversation_gemini(content_in, previous_content_in)
         elif m_type == '3':
             content_out = start_conversation_mistral(content_in)
         elif m_type == '4':

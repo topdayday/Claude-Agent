@@ -60,7 +60,7 @@ def format_chat_history(content_in, content_out):
     return chat_history
 
 
-def start_conversation_claude3(input_content, previous_chat_history, model_index=0):
+def start_conversation_claude3(input_content, previous_chat_history=[], model_index=0):
     claude_model = model_data[model_index]
     message = []
     if previous_chat_history:
