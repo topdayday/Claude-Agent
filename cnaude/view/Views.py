@@ -2,7 +2,7 @@ from cnaude.llm.Claude2 import start_conversation_claude2, translate_conversatio
 from cnaude.llm.Claude3 import start_conversation_claude3, translate_conversation_his_v3
 from cnaude.llm.Codey import start_conversation_codey
 from cnaude.llm.Gemini import start_conversation_gemini, translate_conversation_his_gemini
-from cnaude.llm.Llama import start_conversation_llama
+from cnaude.llm.Llama import start_conversation_llama, translate_conversation_his_llama
 from cnaude.llm.Mistral import start_conversation_mistral
 from cnaude.llm.PaLM2 import start_conversation_palm2
 
@@ -88,9 +88,11 @@ def assistant(request):
         elif m_type == '5':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_gemini(records)
-            content_out = start_conversation_codey(content_in,previous_content_in)
+            content_out = start_conversation_codey(content_in, previous_content_in)
         elif m_type == '10':
-            content_out = start_conversation_llama(content_in)
+            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+            previous_content_in = translate_conversation_his_llama(records)
+            content_out = start_conversation_llama(content_in, previous_content_in)
         else:
             return JsonResponse({'code': 1, 'data': '参数错误'})
 
