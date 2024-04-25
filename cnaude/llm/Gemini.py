@@ -66,7 +66,7 @@ def translate_conversation_his_gemini(contents):
 def format_chat_history(content_in, content_out):
     message_in = {"role": "user", "content": content_in}
     message_out = {"role": "model", "content": content_out}
-    return [message_in,message_out]
+    return [message_in, message_out]
 
 
 def start_conversation_gemini(content_in, previous_chat_history=[], model_index=0):

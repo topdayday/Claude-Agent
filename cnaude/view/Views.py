@@ -3,7 +3,7 @@ from cnaude.llm.Claude3 import start_conversation_claude3, translate_conversatio
 from cnaude.llm.Codey import start_conversation_codey
 from cnaude.llm.Gemini import start_conversation_gemini, translate_conversation_his_gemini
 from cnaude.llm.Llama import start_conversation_llama, translate_conversation_his_llama
-from cnaude.llm.Mistral import start_conversation_mistral
+from cnaude.llm.Mistral import start_conversation_mistral, translate_conversation_his_mistral
 from cnaude.llm.PaLM2 import start_conversation_palm2
 
 from cnaude.utils.JwtTool import obtain_jwt_token,protected_view,generate_api_token
@@ -80,7 +80,9 @@ def assistant(request):
             previous_content_in = translate_conversation_his_gemini(records)
             content_out = start_conversation_gemini(content_in, previous_content_in)
         elif m_type == '3':
-            content_out = start_conversation_mistral(content_in)
+            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+            previous_content_in = translate_conversation_his_mistral(records)
+            content_out = start_conversation_mistral(content_in, previous_content_in)
         elif m_type == '4':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_gemini(records)
