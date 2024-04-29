@@ -15,14 +15,12 @@ models_data = [
         "model_id": "chat-bison",
         "max_output_tokens": 2048,
         "temperature": 0.5,
-        "description": "指向版本@002",
         "type": "text",
     },
     {
         "model_id": "chat-bison-32k",
         "max_output_tokens": 8192,
         "temperature": 0.5,
-        "description": "指向版本@002",
         "type": "text",
     },
 ]

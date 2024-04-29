@@ -25,7 +25,6 @@ models_data = [
         "max_output_tokens": 2048,
         "temperature": 1.0,
         "top_p": 1,
-        "description": "针对视觉进行了优化,稳定",
         "type": "multiplex",
     },
     {
@@ -33,7 +32,6 @@ models_data = [
         "max_output_tokens": 8192,
         "temperature": 1.0,
         "top_p": 1,
-        "description": "性能稳定优化版",
         "type": "text",
     },
     {
@@ -41,7 +39,6 @@ models_data = [
         "max_output_tokens": 8192,
         "temperature": 1.0,
         "top_p": 1,
-        "description": "性能稳定优化版",
         "type": "text",
     },
     {
@@ -49,7 +46,6 @@ models_data = [
         "max_output_tokens": 2048,
         "temperature": 1.0,
         "top_p": 1,
-        "description": "早期版本",
         "type": "text",
     },
 ]

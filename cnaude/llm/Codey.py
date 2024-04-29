@@ -17,14 +17,12 @@ models_data = [
         "model_id": "codechat-bison",
         "max_output_tokens": 2048,
         "temperature": 0.5,
-        "description": "指向版本@002",
         "type": "code",
     },
     {
         "model_id": "codechat-bison-32k",
         "max_output_tokens": 8192,
         "temperature": 0.5,
-        "description": "指向版本@002",
         "type": "code",
     },
 

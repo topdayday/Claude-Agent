@@ -13,18 +13,8 @@ def protected_view(token):
     try:
         decoded_token = jwt.decode(token, settings.JWT_SECRET_KEY, algorithms=[settings.JWT_ALGORITHM])
         return decoded_token
-    except jwt.exceptions.DecodeError as e:
-        print('Invalid token: ', e)
-    except jwt.exceptions.ExpiredSignatureError as e:
-        print('Token has expired: ', e)
-    except jwt.exceptions.InvalidAlgorithmError as e:
-        print('Invalid algorithm: ', e)
-    except jwt.exceptions.InvalidAudienceError as e:
-        print('Invalid audience: ', e)
-    except jwt.exceptions.InvalidIssuerError as e:
-        print('Invalid issuer: ', e)
-    except Exception as e:
-        print('An unexpected error occurred: ', e)
+    except BaseException as e:
+        print('protected_view error: ', e)
     return ''
 
 

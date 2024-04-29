@@ -57,14 +57,14 @@ def assistant(request):
     model_type = request.POST.get('model_type')
     token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     member_id = token_info['id']
     midnight_datetime = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
     count = Conversation.objects.filter(member_id=member_id, create_time__gte=midnight_datetime).count()
     if count > 10:
         m_count = Member.objects.filter(id=member_id, vip_level__gt=0).count()
         if m_count == 0:
-            return JsonResponse({'code': 1, 'data': '今日次数已用完，明天再来吧！'})
+            return JsonResponse({'code': 1, 'data': 'The maximum usage is 10 requests per day'})
     m_type = str(model_type);
     if content_in and session_id:
         if m_type == '0':
@@ -96,10 +96,10 @@ def assistant(request):
             previous_content_in = translate_conversation_his_llama(records)
             content_out = start_conversation_llama(content_in, previous_content_in)
         else:
-            return JsonResponse({'code': 1, 'data': '参数错误'})
+            return JsonResponse({'code': 1, 'data': 'Invalid parameter'})
 
         if not content_out:
-            return JsonResponse({'code': 1, 'data': '服务器终止了请求，请检查你输入的内容是否符合审查'})
+            return JsonResponse({'code': 1, 'data': 'The service is busy. Please try again'})
         content_in = content_in.replace('\n', '<br>')
         session_count = session_count_cache.get(session_id, 0)
         title_flag = False
@@ -128,9 +128,9 @@ def latest_session(request):
         page_number = int(page_number)
     except BaseException as be:
         print(be.args)
-        return JsonResponse({'code': 1, 'data': '对话页码参数错误！'})
+        return JsonResponse({'code': 1, 'data': 'Invalid parameter'})
     if not token_info:
-        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     m_id = token_info['id']
     records = Conversation.objects.filter(member_id=m_id, del_flag=0, title_flag=True).order_by('-id')[page_number*30:(page_number+1)*30]
     for record in records:
@@ -145,10 +145,10 @@ def latest_session(request):
 def list_session(request):
     token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     s_id = request.POST.get('session_id')
     if not s_id:
-        return JsonResponse({'code': 1, 'data':  '会话ID不存在！'})
+        return JsonResponse({'code': 1, 'data':  'Invalid session'})
     m_id = token_info['id']
     records = Conversation.objects.filter(member_id=m_id,session_id=s_id, del_flag=0).order_by('id')
     for record in records:
@@ -164,10 +164,10 @@ def list_session(request):
 def del_session(request):
     token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     s_id = request.POST.get('session_id')
     if not s_id:
-        return JsonResponse({'code': 1, 'data':  '会话ID不存在！'})
+        return JsonResponse({'code': 1, 'data':  'Invalid session'})
     m_id = token_info['id']
     Conversation.objects.filter(member_id=m_id,session_id=s_id).update(del_flag=1)
     return JsonResponse({'code': 0, 'data':  'success'})
@@ -178,15 +178,15 @@ def del_session(request):
 def del_conversation(request):
     token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     c_id = request.POST.get('c_id')
     if not c_id:
-        return JsonResponse({'code': 1, 'data':  '对话ID不存在！'})
+        return JsonResponse({'code': 1, 'data':  'Invalid session'})
     try:
         c_id = int(c_id)
     except BaseException as be:
         print(be.args)
-        return JsonResponse({'code': 1, 'data': '对话ID参数错误！'})
+        return JsonResponse({'code': 1, 'data': 'Invalid session'})
     m_id = token_info['id']
     Conversation.objects.filter(member_id=m_id,id=c_id).update(del_flag=1)
     return JsonResponse({'code': 0, 'data':  'success'})
@@ -197,7 +197,7 @@ def del_conversation(request):
 def member_info(request):
     token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     m_id = token_info['id']
     records = Member.objects.filter(id=m_id)
     records.password = '*******'
@@ -212,14 +212,14 @@ def member_info(request):
 def member_edit(request):
     token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     password = request.POST.get('password')
     if not password:
-        return JsonResponse({'code': 1, 'data': '旧密码不能为空！'})
+        return JsonResponse({'code': 1, 'data': 'Password can not be empty'})
     m_id = token_info['id']
     members = Member.objects.filter(id=m_id, password=get_md5(password))
     if not members:
-        return JsonResponse({'code': 1, 'data': '旧密码不正确！'})
+        return JsonResponse({'code': 1, 'data': 'Old password is not correct'})
     mobile = request.POST.get('mobile')
     email = request.POST.get('email')
     members.mobile = mobile
@@ -241,7 +241,7 @@ def member_edit(request):
 def generate_session(request):
     token_info = get_token_info(request)
     if not token_info:
-        return JsonResponse({'code': -1, 'data': '凭证校验失败，请重新登录！'})
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     session_id = generate_api_token()
     return JsonResponse({'code': 0, 'data': session_id})
 
@@ -262,12 +262,12 @@ def login(request):
     password = request.POST.get('password')
     captcha = request.POST.get('captcha')
     if not login_name or not password or not captcha:
-        return JsonResponse({'code': 1, 'data': '参数不能为空！'})
+        return JsonResponse({'code': 1, 'data': 'Invalid parameter'})
     now = datetime.now()
     one_minute_ago = now - timedelta(minutes=1)
     cc = Captcha.objects.filter(captcha_text=captcha, create_time__gte=one_minute_ago).count()
     if cc == 0:
-        return JsonResponse({'code': 1, 'data': '图片验证码错误！'})
+        return JsonResponse({'code': 1, 'data': 'Verification code is not correct'})
     Captcha.objects.filter(captcha_text=captcha).delete()
     md5_pwd = get_md5(password)
     members = Member.objects.filter(login_name=login_name, password=md5_pwd)
@@ -278,7 +278,7 @@ def login(request):
         data ={"token": token, "session_id": session_id}
         return JsonResponse({'code': 0, 'data': data})
     else:
-        return JsonResponse({'code': 1, 'data': '用户名或密码不正确！'})
+        return JsonResponse({'code': 1, 'data': 'User name or password is not correct'})
 
 
 @csrf_exempt
@@ -290,18 +290,18 @@ def register(request):
     captcha = request.POST.get('captcha')
     invite_code = request.POST.get('invite_code')
     if not login_name or not password or not captcha or not invite_code:
-        return JsonResponse({'code': 1, 'data': '注册必填参数不能为空!'})
+        return JsonResponse({'code': 1, 'data': 'Invalid parameter'})
     now = datetime.now()
     one_minute_ago = now - timedelta(minutes=3)
     cc = Captcha.objects.filter(captcha_text=captcha, create_time__gte=one_minute_ago).count()
     if cc == 0:
-        return JsonResponse({'code': 1, 'data': '错误验证码！'})
+        return JsonResponse({'code': 1, 'data': 'Verification code is not correct'})
     Captcha.objects.filter(captcha_text=captcha).delete()
     if invite_code != 'top2day' and invite_code != captcha+captcha+captcha:
-        return JsonResponse({'code': 1, 'data': '邀请码不存在！'})
+        return JsonResponse({'code': 1, 'data': 'Invitation code not correct'})
     members = Member.objects.filter(login_name=login_name)
     if members:
-        return JsonResponse({'code': 1, 'data': '用户名已存在，请更更换！'})
+        return JsonResponse({'code': 1, 'data': 'The user name already exists. Please change the user name'})
     else:
         md5_pwd = get_md5(password)
         record = Member(login_name=login_name, password=md5_pwd, create_time= datetime.now())
