@@ -5,6 +5,7 @@ from cnaude.llm.Gemini import start_conversation_gemini, translate_conversation_
 from cnaude.llm.Llama import start_conversation_llama, translate_conversation_his_llama
 from cnaude.llm.Mistral import start_conversation_mistral, translate_conversation_his_mistral
 from cnaude.llm.PaLM2 import start_conversation_palm2
+from cnaude.llm.Unicorn import start_conversation_unicorn_text
 
 from cnaude.utils.JwtTool import obtain_jwt_token,protected_view,generate_api_token
 from cnaude.utils.Captcha import captcha_base64
@@ -91,6 +92,8 @@ def assistant(request):
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_gemini(records)
             content_out = start_conversation_codey(content_in, previous_content_in)
+        elif m_type == '6':
+            content_out = start_conversation_unicorn_text(content_in, 0)
         elif m_type == '10':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_llama(records)

@@ -12,25 +12,22 @@ from vertexai.language_models import ChatModel, TextGenerationModel
 
 models_data = [
     {
-        "model_id": "chat-bison",
-        "max_output_tokens": 2048,
-        "temperature": 0.5,
-        "type": "text",
-    },
-    {
-        "model_id": "chat-bison-32k",
-        "max_output_tokens": 8192,
-        "temperature": 0.5,
-        "type": "text",
+        "model_id": "text-unicorn@001",
+        "candidate_count": 1,
+        "max_output_tokens": 1024,
+        "temperature": 1,
+        "top_k": 40
     },
 ]
 
-
-def start_conversation_palm2(content_in='', previous_chat_history=[], model_index=0):
+# 暂不支持对话模式
+def start_conversation_unicorn(content_in='', previous_chat_history=[], model_index=0):
     model_data = models_data[model_index]
     config = {
         "max_output_tokens": model_data['max_output_tokens'],
         "temperature":  model_data['temperature'],
+        "temperature": model_data['temperature'],
+        "top_k": model_data['top_k'],
     }
     chat_model = ChatModel.from_pretrained(model_data['model_id'])
     input_content = []
@@ -50,13 +47,13 @@ def start_conversation_palm2(content_in='', previous_chat_history=[], model_inde
     return output_content
 
 
-def start_conversation_palm2_text(content_in, model_index=0):
+def start_conversation_unicorn_text(content_in, model_index=0):
     model_data = models_data[model_index]
     parameters = {
         "candidate_count": 1,
         "max_output_tokens": model_data['max_output_tokens'],
         "temperature":  model_data['temperature'],
-        "top_p": 1
+        "top_k":  model_data['top_k'],
     }
     output_content = ''
     try:
@@ -70,7 +67,7 @@ def start_conversation_palm2_text(content_in, model_index=0):
 
 if __name__ == '__main__':
     for model_idx in range(1):
-        output = start_conversation_palm2('what is your name ?', model_idx)
+        output = start_conversation_palm2_text('who are you ?', model_idx)
         print(models_data[model_idx]['model_id'] + '===>  ' + output)
 
 
