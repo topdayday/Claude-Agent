@@ -2,6 +2,12 @@ import boto3
 import json
 
 model_data =[
+
+    {
+        "model_id": "meta.llama3-1-70b-instruct-v1:0",
+        "max_output_tokens": 2048,
+        "name": "llama3-1-70b",
+    },
     {
         "model_id": "meta.llama3-70b-instruct-v1:0",
         "max_output_tokens": 2048,
@@ -33,7 +39,7 @@ def format_chat_history(content_in, content_out):
     return message
 
 
-def start_conversation_llama(input_content, previous_chat_history='', model_index=1):
+def start_conversation_llama(input_content, previous_chat_history='', model_index=0):
     llama_model = model_data[model_index]
     input_prompt = '''
     <|begin_of_text|>
