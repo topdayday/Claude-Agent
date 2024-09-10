@@ -21,7 +21,7 @@ models_data = [
         "type": "multiplex",
     },
     {
-        "model_id": "gemini-1.5-pro-preview-0409",
+        "model_id": "gemini-1.5-pro-previe:w-0409",
         "max_output_tokens": 8192,
         "temperature": 1.0,
         "top_p": 1,
