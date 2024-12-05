@@ -62,6 +62,17 @@ models_data = [
     },
 ]
 
+def translate_conversation_his_gemini(contents):
+    chats_history = []
+    for content in contents:
+        chat_history = format_chat_history(content.content_in, content.content_out)
+        chats_history.extend(chat_history)
+    return chats_history
+
+def format_chat_history(content_in, content_out):
+    message_in = {"role": "user", "content": content_in}
+    message_out = {"role": "model", "content": content_out}
+    return [message_in, message_out]
 
 def start_conversation_gemini(content_in, model_index=0):
     model_data = models_data[model_index]
