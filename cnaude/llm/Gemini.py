@@ -13,15 +13,15 @@ from vertexai.preview.generative_models import GenerativeModel
 # 一个词元约为 4 个字符。
 models_data = [
     {
-        "model_id": "gemini-1.5-pro-001",
+        "model_id": "gemini-1.5-pro-002",
         "max_output_tokens": 8192,
         "temperature": 1.0,
         "top_p": 1,
-        "description": "1M content window",
+        "description": "2M content window",
         "type": "multiplex",
     },
     {
-        "model_id": "gemini-1.5-pro-previe:w-0409",
+        "model_id": "gemini-1.5-pro-preview-0409",
         "max_output_tokens": 8192,
         "temperature": 1.0,
         "top_p": 1,
@@ -33,6 +33,7 @@ models_data = [
         "max_output_tokens": 2048,
         "temperature": 1.0,
         "top_p": 1,
+        "description": "针对视觉进行了优化,稳定",
         "type": "multiplex",
     },
     {
@@ -40,6 +41,7 @@ models_data = [
         "max_output_tokens": 8192,
         "temperature": 1.0,
         "top_p": 1,
+        "description": "性能稳定优化版",
         "type": "text",
     },
     {
@@ -47,6 +49,7 @@ models_data = [
         "max_output_tokens": 8192,
         "temperature": 1.0,
         "top_p": 1,
+        "description": "性能稳定优化版",
         "type": "text",
     },
     {
@@ -54,43 +57,24 @@ models_data = [
         "max_output_tokens": 2048,
         "temperature": 1.0,
         "top_p": 1,
+        "description": "早期版本",
         "type": "text",
     },
 ]
 
 
-def translate_conversation_his_gemini(contents):
-    chats_history = []
-    for content in contents:
-        chat_history = format_chat_history(content.content_in, content.content_out)
-        chats_history.extend(chat_history)
-    return chats_history
-
-
-def format_chat_history(content_in, content_out):
-    message_in = {"role": "user", "content": content_in}
-    message_out = {"role": "model", "content": content_out}
-    return [message_in, message_out]
-
-
-def start_conversation_gemini(content_in, previous_chat_history=[], model_index=0):
+def start_conversation_gemini(content_in, model_index=0):
     model_data = models_data[model_index]
     config = {
         "max_output_tokens": model_data['max_output_tokens'],
         "temperature":  model_data['temperature'],
         "top_p": model_data['top_p'],
     }
-    input_content = []
     output_content = ''
-    input_content_obj = {"role": "user", "content": content_in}
-    if previous_chat_history:
-        input_content.extend(previous_chat_history)
-    input_content.append(input_content_obj)
-    output_content_str = "\n".join([f"{m['role']}: {m['content']}" for m in input_content])
     model = GenerativeModel(model_data['model_id'])
     chat = model.start_chat()
     try:
-        message_out = chat.send_message(output_content_str, generation_config=config)
+        message_out = chat.send_message(content_in, generation_config=config)
         output_content = message_out.candidates[0].content.parts[0].text
     except ResponseBlockedError as e:
 
@@ -99,6 +83,8 @@ def start_conversation_gemini(content_in, previous_chat_history=[], model_index=
 
 
 if __name__ == '__main__':
-    for model_idx in range(1):
-        output = start_conversation_gemini('有关他的起源?', model_idx)
-        print(models_data[model_idx]['model_id'] + '===>  ' + output)
+    output = start_conversation_gemini('what is your name ?')
+    print('===>  ' + output)
+    # for model_idx in range(5):
+    #     output = start_conversation_gemini('what is your name ?', model_idx)
+    #     print(models_data[model_idx]['model_id'] + '===>  ' + output)
