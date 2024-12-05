@@ -3,6 +3,12 @@ import json
 
 model_data =[
     {
+        "model_id": "anthropic.claude-3-5-sonnet-20241022-v2:0",
+        "version": "bedrock-2023-05-31",
+        "max_output_tokens": 204800,
+        "name": "claude-3-opus",
+    },
+    {
         "model_id": "anthropic.claude-3-opus-20240229-v1:0",
         "version": "bedrock-2023-05-31",
         "max_output_tokens": 204800,
