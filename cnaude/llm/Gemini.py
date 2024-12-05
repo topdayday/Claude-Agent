@@ -74,18 +74,24 @@ def format_chat_history(content_in, content_out):
     message_out = {"role": "model", "content": content_out}
     return [message_in, message_out]
 
-def start_conversation_gemini(content_in, model_index=0):
+def start_conversation_gemini(content_in, previous_chat_history=[], model_index=0):
     model_data = models_data[model_index]
     config = {
         "max_output_tokens": model_data['max_output_tokens'],
         "temperature":  model_data['temperature'],
         "top_p": model_data['top_p'],
     }
+    input_content = []
     output_content = ''
+    input_content_obj = {"role": "user", "content": content_in}
+    if previous_chat_history:
+        input_content.extend(previous_chat_history)
+    input_content.append(input_content_obj)
+    output_content_str = "\n".join([f"{m['role']}: {m['content']}" for m in input_content])
     model = GenerativeModel(model_data['model_id'])
     chat = model.start_chat()
     try:
-        message_out = chat.send_message(content_in, generation_config=config)
+        message_out = chat.send_message(output_content_str, generation_config=config)
         output_content = message_out.candidates[0].content.parts[0].text
     except ResponseBlockedError as e:
 
