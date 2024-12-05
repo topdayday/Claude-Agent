@@ -67,7 +67,7 @@ def start_conversation_unicorn_text(content_in, model_index=0):
 
 if __name__ == '__main__':
     for model_idx in range(1):
-        output = start_conversation_palm2_text('who are you ?', model_idx)
+        output = start_conversation_unicorn_text('who are you ?', model_idx)
         print(models_data[model_idx]['model_id'] + '===>  ' + output)
 
 
