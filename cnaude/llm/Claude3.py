@@ -3,6 +3,12 @@ import json
 
 model_data =[
     {
+        "model_id": "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
+        "version": "bedrock-2023-05-31",
+        "max_output_tokens": 131072,
+        "name": "claude-3-7",
+    },
+    {
         "model_id": "us.anthropic.claude-3-5-sonnet-20241022-v2:0",
         "version": "bedrock-2023-05-31",
         "max_output_tokens": 204800,
@@ -28,7 +34,7 @@ model_data =[
     },
 ]
 
-bedrock = boto3.client(service_name="bedrock-runtime", region_name="us-east-1")
+bedrock = boto3.client(service_name="bedrock-runtime", region_name="us-west-2")
 
 
 def translate_conversation_his_v3(contents):
