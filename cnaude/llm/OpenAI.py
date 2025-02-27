@@ -1,15 +1,16 @@
 import os
 from openai import OpenAI
-import traceback
+
 
 clientDeepSeek = OpenAI(
-    api_key="{Your-App-Key}",  
+    api_key="{your-app-key}",  
     base_url="https://api.deepseek.com",
 )
 clientQWen = OpenAI(
-    api_key="{Your-App-Key}",  
+    api_key="{your-app-key}",  
     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
 )
+
 
 
 def translate_conversation_his_openai(contents):
@@ -47,8 +48,10 @@ def start_conversation_openai(input_content, previous_chat_history=[], model_ind
     output_content = ''
     if model_index == 0:
         model_client = clientDeepSeek
-        # model_id = 'deepseek-chat'
-        model_id = 'deepseek-reasoner'
+        if len(message) == 1:
+            model_id = 'deepseek-reasoner'
+        else:
+            model_id = 'deepseek-chat'
     elif model_index == 1:    
         model_client = clientQWen
         model_id = 'qwen-max-2025-01-25'
@@ -60,11 +63,5 @@ def start_conversation_openai(input_content, previous_chat_history=[], model_ind
         )
         output_content=response.choices[0].message.content
     except BaseException as e:
-        # 获取异常类型、值和回溯对象
-        etype, value, tb = sys.exc_info()
-        # 使用 traceback.format_exception 格式化异常信息
-        error_message = ''.join(traceback.format_exception(etype, value, tb))
-        output_content = error_message
-        print("捕获到的异常信息：")
-        print(error_message)
+        print(e.args)
     return output_content
