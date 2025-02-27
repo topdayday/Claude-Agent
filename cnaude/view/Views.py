@@ -6,7 +6,8 @@ from cnaude.llm.Llama import start_conversation_llama, translate_conversation_hi
 from cnaude.llm.Mistral import start_conversation_mistral, translate_conversation_his_mistral
 from cnaude.llm.PaLM2 import start_conversation_palm2
 from cnaude.llm.Unicorn import start_conversation_unicorn_text
-
+from cnaude.llm.OpenAI import start_conversation_openai
+from cnaude.llm.OpenAI import translate_conversation_his_openai
 from cnaude.utils.JwtTool import obtain_jwt_token,protected_view,generate_api_token
 from cnaude.utils.Captcha import captcha_base64
 from django.http import JsonResponse
@@ -68,36 +69,44 @@ def assistant(request):
             return JsonResponse({'code': 1, 'data': 'The maximum usage is 10 requests per day'})
     m_type = str(model_type);
     if content_in and session_id:
-        if m_type == '0':
+        if m_type == '50':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            previous_content_in = translate_conversation_his_v2(records)
-            content_out = start_conversation_claude2(content_in, previous_content_in)
+            previous_content_in = translate_conversation_his_openai(records)
+            content_out = start_conversation_openai(content_in, previous_content_in,0) 
+        elif m_type == '40':
+            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+            previous_content_in = translate_conversation_his_openai(records)
+            content_out = start_conversation_openai(content_in, previous_content_in,1)     
         elif m_type == '1':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_v3(records)
-            content_out = start_conversation_claude3(content_in, previous_content_in)
+            content_out = start_conversation_claude3(content_in, previous_content_in)   
         elif m_type == '2':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_gemini(records)
             content_out = start_conversation_gemini(content_in, previous_content_in)
-        elif m_type == '3':
-            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            previous_content_in = translate_conversation_his_mistral(records)
-            content_out = start_conversation_mistral(content_in, previous_content_in)
-        elif m_type == '4':
-            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            previous_content_in = translate_conversation_his_gemini(records)
-            content_out = start_conversation_palm2(content_in, previous_content_in)
-        elif m_type == '5':
-            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            previous_content_in = translate_conversation_his_gemini(records)
-            content_out = start_conversation_codey(content_in, previous_content_in)
-        elif m_type == '6':
-            content_out = start_conversation_unicorn_text(content_in, 0)
-        elif m_type == '10':
-            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            previous_content_in = translate_conversation_his_llama(records)
-            content_out = start_conversation_llama(content_in, previous_content_in)
+        # elif m_type == '0':
+        #     records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+        #     previous_content_in = translate_conversation_his_v2(records)
+        #     content_out = start_conversation_claude2(content_in, previous_content_in)    
+        # elif m_type == '3':
+        #     records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+        #     previous_content_in = translate_conversation_his_mistral(records)
+        #     content_out = start_conversation_mistral(content_in, previous_content_in)
+        # elif m_type == '4':
+        #     records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+        #     previous_content_in = translate_conversation_his_gemini(records)
+        #     content_out = start_conversation_palm2(content_in, previous_content_in)
+        # elif m_type == '5':
+        #     records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+        #     previous_content_in = translate_conversation_his_gemini(records)
+        #     content_out = start_conversation_codey(content_in, previous_content_in)
+        # elif m_type == '6':
+        #     content_out = start_conversation_unicorn_text(content_in, 0)
+        # elif m_type == '10':
+        #     records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+        #     previous_content_in = translate_conversation_his_llama(records)
+        #     content_out = start_conversation_llama(content_in, previous_content_in)
         else:
             return JsonResponse({'code': 1, 'data': 'Invalid parameter'})
 
