@@ -7,6 +7,7 @@ from cnaude.llm.Mistral import start_conversation_mistral, translate_conversatio
 from cnaude.llm.PaLM2 import start_conversation_palm2
 from cnaude.llm.Unicorn import start_conversation_unicorn_text
 from cnaude.llm.OpenAI import start_conversation_openai
+from cnaude.llm.DeepSeek import start_conversation_deepseek
 from cnaude.llm.OpenAI import translate_conversation_his_openai
 from cnaude.utils.JwtTool import obtain_jwt_token,protected_view,generate_api_token
 from cnaude.utils.Captcha import captcha_base64
@@ -72,7 +73,8 @@ def assistant(request):
         if m_type == '50':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_openai(records)
-            content_out = start_conversation_openai(content_in, previous_content_in,0) 
+            # content_out = start_conversation_openai(content_in, previous_content_in, 0)
+            content_out = start_conversation_deepseek(content_in)
         elif m_type == '40':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_openai(records)
