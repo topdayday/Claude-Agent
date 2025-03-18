@@ -26,16 +26,22 @@ def start_conversation_deepseek(prompt):
             # print(f"Text:\n{choice['text']}\n")
             # print(f"Stop reason: {choice['stop_reason']}\n")
             content_out = choice['text']
-            content_out = '```'+content_out.replace('</think>', '```\n')
-            return content_out
+            contents = content_out.split('</think>')
+            if len(contents) > 1:
+                content_out = contents[0]
+                reason_out = contents[1]
+                return content_out, reason_out
+            else:
+                return content_out, None
     except (ClientError, Exception) as e:
         print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
-        return None
+        return None,  None
 
 
 if __name__ == '__main__':
-    output = start_conversation_deepseek('who are you ?')
-    print(output)
+    output1,  output2 = start_conversation_deepseek('who are you ？')
+    print(output2)
+    print(output1)
 
 
 

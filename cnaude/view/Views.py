@@ -8,6 +8,8 @@ from cnaude.llm.PaLM2 import start_conversation_palm2
 from cnaude.llm.Unicorn import start_conversation_unicorn_text
 from cnaude.llm.OpenAI import start_conversation_openai
 from cnaude.llm.DeepSeek import start_conversation_deepseek
+from cnaude.llm.DeepSeekCaht import start_conversation_deep_seek_chat
+from cnaude.llm.DeepSeekCaht import translate_conversation_his_deep_seek
 from cnaude.llm.OpenAI import translate_conversation_his_openai
 from cnaude.utils.JwtTool import obtain_jwt_token,protected_view,generate_api_token
 from cnaude.utils.Captcha import captcha_base64
@@ -68,25 +70,32 @@ def assistant(request):
         m_count = Member.objects.filter(id=member_id, vip_level__gt=0).count()
         if m_count == 0:
             return JsonResponse({'code': 1, 'data': 'The maximum usage is 10 requests per day'})
-    m_type = str(model_type);
+    m_type = str(model_type)
     if content_in and session_id:
         if m_type == '50':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            previous_content_in = translate_conversation_his_openai(records)
-            # content_out = start_conversation_openai(content_in, previous_content_in, 0)
-            content_out = start_conversation_deepseek(content_in)
+            print('1---->' + str(len(records)))
+            previous_content_in = translate_conversation_his_deep_seek(records)
+            print('2---->' + str(len(previous_content_in)))
+            if len(previous_content_in) > 0:
+                content_out, reason_out = start_conversation_deep_seek_chat(content_in,previous_content_in)
+            else:
+                content_out, reason_out = start_conversation_deepseek(content_in)
         elif m_type == '40':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_openai(records)
-            content_out = start_conversation_openai(content_in, previous_content_in,1)     
+            content_out = start_conversation_openai(content_in, previous_content_in, 1)
+            reason_out = None
         elif m_type == '1':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_v3(records)
-            content_out = start_conversation_claude3(content_in, previous_content_in)   
+            content_out = start_conversation_claude3(content_in, previous_content_in)
+            reason_out = None
         elif m_type == '2':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_gemini(records)
             content_out = start_conversation_gemini(content_in, previous_content_in)
+            reason_out = None
         # elif m_type == '0':
         #     records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
         #     previous_content_in = translate_conversation_his_v2(records)
@@ -120,11 +129,14 @@ def assistant(request):
         if session_count < 1 and Conversation.objects.filter(session_id=session_id).count() == 0:
             title_flag = True
         record = Conversation(member_id=member_id, session_id=session_id, content_in=content_in,
-                              content_out=content_out, model_type= model_type, title_flag=title_flag,
-                              create_time=datetime.now())
+                              content_out=content_out, reason_out=reason_out, model_type= model_type,
+                              title_flag=title_flag, create_time=datetime.now())
         record.save()
         session_count_cache[session_id] = 1
-        html_out = md.convert(record.content_out)
+        if record.reason_out:
+            html_out = md.convert(record.reason_out + '\n---\n\n' +record.content_out)
+        else:
+            html_out = md.convert(record.content_out)
         record.content_out = html_out
         conversations_serializer = ConversationSerializer(record, many=False)
         conversations_json = conversations_serializer.data

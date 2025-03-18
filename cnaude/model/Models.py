@@ -8,10 +8,12 @@ class Conversation(models.Model):
     session_id = models.CharField(max_length=255, null=True, blank=True,)
     content_in = models.TextField(blank=True)
     content_out = models.TextField(blank=True)
+    reason_out = models.TextField(blank=True)
     create_time = models.DateTimeField(null=True, blank=True)
     model_type = models.PositiveSmallIntegerField(default=0)
     del_flag = models.BooleanField(default=False)
     title_flag = models.BooleanField(default=False)
+
 
     class Meta:
         app_label = 'conversation'
@@ -61,7 +63,7 @@ class Captcha(models.Model):
 class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
-        fields = ('id','session_id', 'content_in',  'content_out', 'member_id',  'model_type', 'create_time')
+        fields = ('id','session_id', 'content_in',  'content_out', 'reason_out',  'member_id',  'model_type', 'create_time')
 
 
 class MemberSerializer(serializers.ModelSerializer):
