@@ -17,17 +17,21 @@ temperature = 0.9
 max_tokens = 4096
 system_prompts = [{"text": "你是DeepSeek-R1大语言模型，你需求竭尽全力专为人类提供帮助。"}]
 model_id = "us.deepseek.r1-v1:0"
-custom_config = Config(connect_timeout=840, read_timeout=840)
+custom_config = Config(connect_timeout=840, read_timeout=840, region_name="us-west-2")
 bedrock_client = boto3.client(service_name='bedrock-runtime', config=custom_config)
-
-
 
 
 def translate_conversation_his_deep_seek(contents):
     chats_history = []
     for content in contents:
-        chat_history = format_chat_history(content.content_in, content.content_out)
-        chats_history.extend(chat_history)
+        content_out = ''
+        if content.content_out and len(content.content_out.strip()) > 0:
+            content_out = content.content_out
+        elif content.reason_out and len(content.reason_out.strip()) > 0:
+            content_out = content.reason_out
+        if len(content_out.strip()) > 0:
+            chat_history = format_chat_history(content.content_in, content_out)
+            chats_history.extend(chat_history)
     return chats_history
 
 
@@ -39,7 +43,6 @@ def format_chat_history(content_in, content_out):
     message_out = {"role": "assistant",
                    "content": [{"text": content_out}]}
     return [message_in, message_out]
-
 
 
 def generate_conversation(bedrock_client,
@@ -85,6 +88,8 @@ def start_conversation_deep_seek_chat(content_in, previous_chat_history=[]):
             bedrock_client, model_id, system_prompts, message)
         output_message = response['output']['message']
         for content in output_message["content"]:
+            if not content:
+                continue
             reasoning_content = content.get("reasoningContent")
             if reasoning_content:
                 reason_out = reasoning_content['reasoningText']['text']

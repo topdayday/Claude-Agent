@@ -20,6 +20,7 @@ import hashlib
 from django.views.decorators.http import require_http_methods
 from cnaude.model.Models import Conversation, Member, Captcha, ConversationSerializer, MemberSerializer
 from datetime import datetime, timedelta
+import logging
 
 session_count_cache = {}
 
@@ -74,11 +75,9 @@ def assistant(request):
     if content_in and session_id:
         if m_type == '50':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            print('1---->' + str(len(records)))
             previous_content_in = translate_conversation_his_deep_seek(records)
-            print('2---->' + str(len(previous_content_in)))
             if len(previous_content_in) > 0:
-                content_out, reason_out = start_conversation_deep_seek_chat(content_in,previous_content_in)
+                content_out, reason_out = start_conversation_deep_seek_chat(content_in, previous_content_in)
             else:
                 content_out, reason_out = start_conversation_deepseek(content_in)
         elif m_type == '40':
@@ -121,7 +120,7 @@ def assistant(request):
         else:
             return JsonResponse({'code': 1, 'data': 'Invalid parameter'})
 
-        if not content_out:
+        if not content_out and not reason_out:
             return JsonResponse({'code': 1, 'data': 'The service is busy. Please try again'})
         content_in = content_in.replace('\n', '<br>')
         session_count = session_count_cache.get(session_id, 0)
@@ -134,7 +133,7 @@ def assistant(request):
         record.save()
         session_count_cache[session_id] = 1
         if record.reason_out:
-            html_out = md.convert(record.reason_out + '\n---\n\n' +record.content_out)
+            html_out = md.convert(record.reason_out + '\n---\n\n' + record.content_out)
         else:
             html_out = md.convert(record.content_out)
         record.content_out = html_out
@@ -178,7 +177,10 @@ def list_session(request):
     m_id = token_info['id']
     records = Conversation.objects.filter(member_id=m_id,session_id=s_id, del_flag=0).order_by('id')
     for record in records:
-        html_out = md.convert(record.content_out)
+        if record.reason_out:
+            html_out = md.convert(record.reason_out + '\n---\n\n' + record.content_out)
+        else:
+            html_out = md.convert(record.content_out)
         record.content_out = html_out
     conversations_serializer = ConversationSerializer(records, many=True)
     conversations_json = conversations_serializer.data
@@ -339,3 +341,6 @@ def register(request):
             session_id = generate_api_token()
             data = {"token": token, "session_id": session_id}
         return JsonResponse({'code': 0, 'data': data})
+
+
+

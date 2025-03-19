@@ -39,7 +39,7 @@ def start_conversation_deepseek(prompt):
 
 
 if __name__ == '__main__':
-    output1,  output2 = start_conversation_deepseek('who are you ？')
+    output1,  output2 = start_conversation_deepseek('你知道大熊猫吗？')
     print(output2)
     print(output1)
 
