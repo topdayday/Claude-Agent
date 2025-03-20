@@ -3,9 +3,9 @@ import subprocess
 import json
 from json import JSONDecodeError
 # 配置参数
-ENDPOINT = "us-central1-aiplatform.googleapis.com"
-REGION = "us-central1"
-PROJECT_ID = "dogwood-outcome-325302"
+ENDPOINT = "ENDPOINT"
+REGION = "REGION"
+PROJECT_ID = "PROJECT_ID"
 URL = f"https://{ENDPOINT}/v1beta1/projects/{PROJECT_ID}/locations/{REGION}/endpoints/openapi/chat/completions"
 request_token = None
 
