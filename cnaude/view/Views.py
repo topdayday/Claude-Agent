@@ -11,7 +11,7 @@ from cnaude.llm.DeepSeek import start_conversation_deepseek
 from cnaude.llm.DeepSeekCaht import start_conversation_deep_seek_chat
 from cnaude.llm.DeepSeekCaht import translate_conversation_his_deep_seek
 from cnaude.llm.OpenAI import translate_conversation_his_openai
-from cnaude.utils.JwtTool import obtain_jwt_token,protected_view,generate_api_token
+from cnaude.utils.JwtTool import obtain_jwt_token, protected_view, generate_api_token
 from cnaude.utils.Captcha import captcha_base64
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
@@ -128,7 +128,7 @@ def assistant(request):
         if session_count < 1 and Conversation.objects.filter(session_id=session_id).count() == 0:
             title_flag = True
         record = Conversation(member_id=member_id, session_id=session_id, content_in=content_in,
-                              content_out=content_out, reason_out=reason_out, model_type= model_type,
+                              content_out=content_out, reason_out=reason_out, model_type=model_type,
                               title_flag=title_flag, create_time=datetime.now())
         record.save()
         session_count_cache[session_id] = 1
@@ -157,12 +157,13 @@ def latest_session(request):
     if not token_info:
         return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     m_id = token_info['id']
-    records = Conversation.objects.filter(member_id=m_id, del_flag=0, title_flag=True).order_by('-id')[page_number*30:(page_number+1)*30]
+    records = Conversation.objects.filter(member_id=m_id, del_flag=0, title_flag=True).order_by('-id')[
+              page_number * 30:(page_number + 1) * 30]
     for record in records:
         session_count_cache[record.session_id] = 1
     conversations_serializer = ConversationSerializer(records, many=True)
     conversations_json = conversations_serializer.data
-    return JsonResponse({'code': 0, 'data':  conversations_json})
+    return JsonResponse({'code': 0, 'data': conversations_json})
 
 
 @csrf_exempt
@@ -173,9 +174,9 @@ def list_session(request):
         return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     s_id = request.POST.get('session_id')
     if not s_id:
-        return JsonResponse({'code': 1, 'data':  'Invalid session'})
+        return JsonResponse({'code': 1, 'data': 'Invalid session'})
     m_id = token_info['id']
-    records = Conversation.objects.filter(member_id=m_id,session_id=s_id, del_flag=0).order_by('id')
+    records = Conversation.objects.filter(member_id=m_id, session_id=s_id, del_flag=0).order_by('id')
     for record in records:
         if record.reason_out:
             html_out = md.convert(record.reason_out + '\n---\n\n' + record.content_out)
@@ -184,7 +185,7 @@ def list_session(request):
         record.content_out = html_out
     conversations_serializer = ConversationSerializer(records, many=True)
     conversations_json = conversations_serializer.data
-    return JsonResponse({'code': 0, 'data':  conversations_json})
+    return JsonResponse({'code': 0, 'data': conversations_json})
 
 
 @csrf_exempt
@@ -195,10 +196,10 @@ def del_session(request):
         return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     s_id = request.POST.get('session_id')
     if not s_id:
-        return JsonResponse({'code': 1, 'data':  'Invalid session'})
+        return JsonResponse({'code': 1, 'data': 'Invalid session'})
     m_id = token_info['id']
-    Conversation.objects.filter(member_id=m_id,session_id=s_id).update(del_flag=1)
-    return JsonResponse({'code': 0, 'data':  'success'})
+    Conversation.objects.filter(member_id=m_id, session_id=s_id).update(del_flag=1)
+    return JsonResponse({'code': 0, 'data': 'success'})
 
 
 @csrf_exempt
@@ -209,15 +210,15 @@ def del_conversation(request):
         return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     c_id = request.POST.get('c_id')
     if not c_id:
-        return JsonResponse({'code': 1, 'data':  'Invalid session'})
+        return JsonResponse({'code': 1, 'data': 'Invalid session'})
     try:
         c_id = int(c_id)
     except BaseException as be:
         print(be.args)
         return JsonResponse({'code': 1, 'data': 'Invalid session'})
     m_id = token_info['id']
-    Conversation.objects.filter(member_id=m_id,id=c_id).update(del_flag=1)
-    return JsonResponse({'code': 0, 'data':  'success'})
+    Conversation.objects.filter(member_id=m_id, id=c_id).update(del_flag=1)
+    return JsonResponse({'code': 0, 'data': 'success'})
 
 
 @csrf_exempt
@@ -232,7 +233,7 @@ def member_info(request):
     records.id = ''
     conversations_serializer = MemberSerializer(records, many=True)
     conversations_json = conversations_serializer.data
-    return JsonResponse({'code': 0, 'data':  conversations_json})
+    return JsonResponse({'code': 0, 'data': conversations_json})
 
 
 @csrf_exempt
@@ -255,13 +256,13 @@ def member_edit(request):
     new_password = request.POST.get('new_password')
     if new_password:
         md5_pwd = get_md5(new_password)
-        Member.objects.filter(id=m_id).update(mobile=mobile,email=email,password=md5_pwd)
+        Member.objects.filter(id=m_id).update(mobile=mobile, email=email, password=md5_pwd)
     else:
         Member.objects.filter(id=m_id).update(mobile=mobile, email=email)
     members.password = '*******'
     conversations_serializer = MemberSerializer(members, many=True)
     conversations_json = conversations_serializer.data
-    return JsonResponse({'code': 0, 'data':  conversations_json})
+    return JsonResponse({'code': 0, 'data': conversations_json})
 
 
 @csrf_exempt
@@ -280,7 +281,7 @@ def get_captcha(request):
     captcha_text, image_base64 = captcha_base64()
     record = Captcha(captcha_text=captcha_text, create_time=datetime.now())
     record.save()
-    return JsonResponse({'code': 0, 'data':  image_base64})
+    return JsonResponse({'code': 0, 'data': image_base64})
 
 
 @csrf_exempt
@@ -303,7 +304,7 @@ def login(request):
         Member.objects.filter(login_name=login_name).update(last_login_time=now)
         token = obtain_jwt_token(members[0])
         session_id = generate_api_token()
-        data ={"token": token, "session_id": session_id}
+        data = {"token": token, "session_id": session_id}
         return JsonResponse({'code': 0, 'data': data})
     else:
         return JsonResponse({'code': 1, 'data': 'User name or password is not correct'})
@@ -325,14 +326,14 @@ def register(request):
     if cc == 0:
         return JsonResponse({'code': 1, 'data': 'Verification code is not correct'})
     Captcha.objects.filter(captcha_text=captcha).delete()
-    if invite_code != 'top2day' and invite_code != captcha+captcha+captcha:
+    if invite_code != 'top2day' and invite_code != captcha + captcha + captcha:
         return JsonResponse({'code': 1, 'data': 'Invitation code not correct'})
     members = Member.objects.filter(login_name=login_name)
     if members:
         return JsonResponse({'code': 1, 'data': 'The user name already exists. Please change the user name'})
     else:
         md5_pwd = get_md5(password)
-        record = Member(login_name=login_name, password=md5_pwd, create_time= datetime.now())
+        record = Member(login_name=login_name, password=md5_pwd, create_time=datetime.now())
         record.save()
         members_signin = Member.objects.filter(login_name=login_name, password=md5_pwd)
         data = {}
@@ -343,4 +344,25 @@ def register(request):
         return JsonResponse({'code': 0, 'data': data})
 
 
-
+@csrf_exempt
+@require_http_methods(["POST"])
+def list_llm(request):
+    models = [
+        {
+            "name": "DeepSeek",
+            "modelId": 50
+        },
+        {
+            "name": "Gemini",
+            "modelId": 2
+        },
+        {
+            "name": "Claude",
+            "modelId": 1
+        },
+        {
+            "name": "Qwen",
+            "modelId": 40
+        },
+    ]
+    return JsonResponse({'code': 0, 'data': models})
