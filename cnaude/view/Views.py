@@ -21,6 +21,10 @@ from django.views.decorators.http import require_http_methods
 from cnaude.model.Models import Conversation, Member, Captcha, ConversationSerializer, MemberSerializer
 from datetime import datetime, timedelta
 import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
+
 
 session_count_cache = {}
 

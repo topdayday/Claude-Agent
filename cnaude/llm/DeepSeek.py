@@ -28,8 +28,8 @@ def start_conversation_deepseek(prompt):
             content_out = choice['text']
             contents = content_out.split('</think>')
             if len(contents) > 1:
-                content_out = contents[0]
-                reason_out = contents[1]
+                reason_out = contents[0]
+                content_out = contents[1]
                 return content_out, reason_out
             else:
                 return content_out, None
@@ -39,8 +39,9 @@ def start_conversation_deepseek(prompt):
 
 
 if __name__ == '__main__':
-    output1,  output2 = start_conversation_deepseek('你知道大熊猫吗？')
+    output1,  output2 = start_conversation_deepseek('who are you？')
     print(output2)
+    print('==============================')
     print(output1)
 
 

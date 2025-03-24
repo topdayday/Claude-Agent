@@ -104,3 +104,9 @@ def start_conversation_deep_seek_chat(content_in, previous_chat_history=[]):
             f"Finished generating text with model {model_id}.")
     return content_out, reason_out
 
+
+if __name__ == '__main__':
+    output1,  output2 = start_conversation_deep_seek_chat('who are you', [])
+    print(output2)
+    print('==============================')
+    print(output1)
