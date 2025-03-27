@@ -138,6 +138,8 @@ def assistant(request):
         session_count_cache[session_id] = 1
         if record.reason_out:
             reason_out = md.convert(record.reason_out)
+            reason_out = reason_out.replace('<pre>', '<div style="text-align:left;">')
+            reason_out = reason_out.replace('</pre>', '</div>')
             record.reason_out = reason_out
         if record.content_out:
             content_out = md.convert(record.content_out)
@@ -185,6 +187,8 @@ def list_session(request):
     for record in records:
         if record.reason_out:
             reason_out = md.convert(record.reason_out)
+            reason_out = reason_out.replace('<pre>', '<div style="text-align:left;">')
+            reason_out = reason_out.replace('</pre>', '</div>')
             record.reason_out = reason_out
         if record.content_out:
             content_out = md.convert(record.content_out)
