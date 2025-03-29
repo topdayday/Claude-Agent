@@ -13,6 +13,15 @@ from vertexai.preview.generative_models import GenerativeModel
 # 一个词元约为 4 个字符。
 models_data = [
     {
+        "model_id": "gemini-2.5-pro-exp-03-25",
+        "max_output_tokens": 65535,
+        "temperature": 1.0,
+        "top_p": 1,
+        "description": "2M content window",
+        "type": "multiplex",
+    },
+
+    {
         "model_id": "gemini-2.0-flash-001",
         "max_output_tokens": 8192,
         "temperature": 1.0,
