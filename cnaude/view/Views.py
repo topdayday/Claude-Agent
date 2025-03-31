@@ -2,6 +2,7 @@ from cnaude.llm.Claude2 import start_conversation_claude2, translate_conversatio
 from cnaude.llm.Claude3 import start_conversation_claude3, translate_conversation_his_v3
 from cnaude.llm.Codey import start_conversation_codey
 from cnaude.llm.Gemini import start_conversation_gemini, translate_conversation_his_gemini
+from cnaude.llm.GenaiStudio import start_conversation_genai, translate_conversation_his_genai
 from cnaude.llm.Llama import start_conversation_llama, translate_conversation_his_llama
 from cnaude.llm.Mistral import start_conversation_mistral, translate_conversation_his_mistral
 from cnaude.llm.PaLM2 import start_conversation_palm2
@@ -96,9 +97,12 @@ def assistant(request):
             reason_out = None
         elif m_type == '2':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            previous_content_in = translate_conversation_his_gemini(records)
-            content_out = start_conversation_gemini(content_in, previous_content_in)
+            # previous_content_in = translate_conversation_his_gemini(records)
+            # content_out = start_conversation_gemini(content_in, previous_content_in)
+            previous_content_in = translate_conversation_his_genai(records)
+            content_out = start_conversation_genai(content_in, previous_content_in)
             reason_out = None
+            # from cnaude.llm.GenaiStudio import start_conversation_genai, translate_conversation_his_genai
         # elif m_type == '0':
         #     records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
         #     previous_content_in = translate_conversation_his_v2(records)

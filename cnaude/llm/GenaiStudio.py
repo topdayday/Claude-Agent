@@ -44,6 +44,9 @@ def start_conversation_genai(content_in, previous_chat_history=[], model_index=0
             ],
         ))
     generate_content_config = types.GenerateContentConfig(
+        temperature=1.0,
+        top_p=0.9,
+        max_output_tokens=65535,
         response_mime_type="text/plain",
     )
     result = ''
