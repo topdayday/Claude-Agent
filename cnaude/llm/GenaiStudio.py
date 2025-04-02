@@ -4,9 +4,19 @@ from google import genai
 from google.genai import types
 
 client = genai.Client(
-    api_key='app-key',
+    api_key='aap-key',
 )
-model = "gemini-2.5-pro-exp-03-25"
+
+models_id = [
+    "learnlm-1.5-pro-experimental",
+    "gemini-2.5-pro-exp-03-25",
+    "gemini-2.0-flash",
+    "gemini-2.0-flash-exp-image-generation",
+    "gemini-2.0-flash-lite",
+    "gemini-2.0-flash-thinking-exp-01-21",
+    "gemini-1.5-pro",
+    "gemini-1.5-flash",
+]
 
 
 def translate_conversation_his_genai(contents):
@@ -51,7 +61,7 @@ def start_conversation_genai(content_in, previous_chat_history=[], model_index=0
     )
     result = ''
     for chunk in client.models.generate_content_stream(
-        model=model,
+        model=models_id[model_index],
         contents=contents,
         config=generate_content_config,
     ):
@@ -61,5 +71,6 @@ def start_conversation_genai(content_in, previous_chat_history=[], model_index=0
 
 
 if __name__ == "__main__":
-    result = start_conversation_genai('who are you', [], 0)
+    txt = ''''''
+    result = start_conversation_genai('who are you', [], 1)
     print(result)
