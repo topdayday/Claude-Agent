@@ -99,8 +99,11 @@ def assistant(request):
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_gemini(records)
             content_out = start_conversation_gemini(content_in, previous_content_in)
-            # previous_content_in = translate_conversation_his_genai(records)
-            # content_out = start_conversation_genai(content_in, previous_content_in)
+            reason_out = None
+        elif m_type == '20':
+            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+            previous_content_in = translate_conversation_his_genai(records)
+            content_out = start_conversation_genai(content_in, previous_content_in)
             reason_out = None
             # from cnaude.llm.GenaiStudio import start_conversation_genai, translate_conversation_his_genai
         # elif m_type == '0':
@@ -377,6 +380,10 @@ def list_llm(request):
         {
             "name": "Qwen",
             "modelId": 40
+        },
+        {
+            "name": "LearnLM",
+            "modelId": 20
         },
     ]
     return JsonResponse({'code': 0, 'data': models})

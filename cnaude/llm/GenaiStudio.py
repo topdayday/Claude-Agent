@@ -4,7 +4,7 @@ from google import genai
 from google.genai import types
 
 client = genai.Client(
-    api_key='aap-key',
+    api_key='app-key',
 )
 
 models_id = [
