@@ -366,10 +366,6 @@ def register(request):
 def list_llm(request):
     models = [
         {
-            "name": "DeepSeek",
-            "modelId": 50
-        },
-        {
             "name": "Gemini",
             "modelId": 2
         },
@@ -378,12 +374,13 @@ def list_llm(request):
             "modelId": 1
         },
         {
+            "name": "DeepSeek",
+            "modelId": 50
+        },
+        {
             "name": "Qwen",
             "modelId": 40
         },
-        {
-            "name": "LearnLM",
-            "modelId": 20
-        },
+        
     ]
     return JsonResponse({'code': 0, 'data': models})
