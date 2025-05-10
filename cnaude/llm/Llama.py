@@ -2,7 +2,16 @@ import boto3
 import json
 
 model_data =[
-
+    {
+        "model_id": "us.meta.llama4-maverick-17b-instruct-v1:0",
+        "max_output_tokens": 8192,
+        "name": "llama4-maverick-17b",
+    },
+    {
+        "model_id": "us.meta.llama4-scout-17b-instruct-v1:0",
+        "max_output_tokens": 8192,
+        "name": "llama4-maverick-17b",
+    },
     {
         "model_id": "meta.llama3-1-70b-instruct-v1:0",
         "max_output_tokens": 2048,

@@ -124,10 +124,10 @@ def assistant(request):
         #     content_out = start_conversation_codey(content_in, previous_content_in)
         # elif m_type == '6':
         #     content_out = start_conversation_unicorn_text(content_in, 0)
-        # elif m_type == '10':
-        #     records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-        #     previous_content_in = translate_conversation_his_llama(records)
-        #     content_out = start_conversation_llama(content_in, previous_content_in)
+        elif m_type == '10':
+            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+            previous_content_in = translate_conversation_his_llama(records)
+            content_out = start_conversation_llama(content_in, previous_content_in)
         else:
             return JsonResponse({'code': 1, 'data': 'Invalid parameter'})
 
@@ -380,6 +380,10 @@ def list_llm(request):
         {
             "name": "Qwen",
             "modelId": 40
+        },
+        {
+            "name": "Llama",
+            "modelId": 10
         },
         
     ]
