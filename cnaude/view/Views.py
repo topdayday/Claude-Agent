@@ -78,6 +78,7 @@ def assistant(request):
             return JsonResponse({'code': 1, 'data': 'The maximum usage is 10 requests per day'})
     m_type = str(model_type)
     if content_in and session_id:
+        reason_out = None
         if m_type == '50':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_deep_seek(records)
@@ -89,22 +90,18 @@ def assistant(request):
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_openai(records)
             content_out = start_conversation_openai(content_in, previous_content_in, 1)
-            reason_out = None
         elif m_type == '1':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_v3(records)
             content_out = start_conversation_claude3(content_in, previous_content_in)
-            reason_out = None
         elif m_type == '2':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_gemini(records)
             content_out = start_conversation_gemini(content_in, previous_content_in)
-            reason_out = None
         elif m_type == '20':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_genai(records)
             content_out = start_conversation_genai(content_in, previous_content_in)
-            reason_out = None
             # from cnaude.llm.GenaiStudio import start_conversation_genai, translate_conversation_his_genai
         # elif m_type == '0':
         #     records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
@@ -127,6 +124,7 @@ def assistant(request):
         elif m_type == '10':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_llama(records)
+            reason_out = None
             content_out = start_conversation_llama(content_in, previous_content_in)
         else:
             return JsonResponse({'code': 1, 'data': 'Invalid parameter'})
