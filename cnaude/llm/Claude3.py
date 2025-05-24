@@ -3,9 +3,21 @@ import json
 
 model_data =[
     {
+        "model_id": "us.anthropic.claude-sonnet-4-20250514-v1:0",
+        "version": "bedrock-2023-05-31",
+        "max_output_tokens": 2048004,
+        "name": "claude-3-5",
+    },
+    {
+        "model_id": "us.anthropic.claude-opus-4-20250514-v1:0",
+        "version": "bedrock-2023-05-31",
+        "max_output_tokens": 2048004,
+        "name": "claude-3-5",
+    },
+    {
         "model_id": "us.anthropic.claude-3-7-sonnet-20250219-v1:0",
         "version": "bedrock-2023-05-31",
-        "max_output_tokens": 131072,
+        "max_output_tokens": 2048004,
         "name": "claude-3-7",
     },
     {
@@ -90,7 +102,7 @@ def start_conversation_claude3(input_content, previous_chat_history=[], model_in
         "temperature": 0.9,
         "max_tokens": claude_model['max_output_tokens'],
         "top_k": 250,
-        "top_p": 0.6,
+        "top_p": 0.9,
         "anthropic_version": claude_model['version']
     })
     output_content = ''
