@@ -28,8 +28,18 @@ model_data =[
         "name": "llama3-8b",
     },
 ]
+from botocore.client import Config
 
-bedrock = boto3.client(service_name="bedrock-runtime", region_name="us-west-2")
+# 配置超时（单位：秒）
+# 你可以根据你的需求调整这些值
+timeout_config = Config(
+    connect_timeout=60,  # 连接超时设置为60秒
+    read_timeout=600,     # 读取超时设置为600秒 (Bedrock 模型响应可能需要一些时间)
+    # 可选：配置重试次数
+    retries={'max_attempts': 3, 'mode': 'standard'}
+)
+bedrock = boto3.client(service_name="bedrock-runtime", region_name="us-west-2", config=timeout_config)
+ 
 
 
 def translate_conversation_his_llama(contents):

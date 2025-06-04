@@ -17,8 +17,16 @@ temperature = 0.9
 max_tokens = 4096
 system_prompts = [{"text": "你是DeepSeek-R1大语言模型，你需求竭尽全力专为人类提供帮助。"}]
 model_id = "us.deepseek.r1-v1:0"
-custom_config = Config(connect_timeout=840, read_timeout=840, region_name="us-west-2")
-bedrock_client = boto3.client(service_name='bedrock-runtime', config=custom_config)
+# 配置超时（单位：秒）
+# 你可以根据你的需求调整这些值
+timeout_config = Config(
+    connect_timeout=60,  # 连接超时设置为60秒
+    read_timeout=600,     # 读取超时设置为600秒 (Bedrock 模型响应可能需要一些时间)
+    # 可选：配置重试次数
+    retries={'max_attempts': 3, 'mode': 'standard'}
+)
+client = boto3.client(service_name="bedrock-runtime", region_name="us-west-2", config=timeout_config)
+
 
 
 def translate_conversation_his_deep_seek(contents):
@@ -45,7 +53,7 @@ def format_chat_history(content_in, content_out):
     return [message_in, message_out]
 
 
-def generate_conversation(bedrock_client,
+def generate_conversation(client,
                           model_id,
                           system_prompts,
                           messages):
@@ -54,7 +62,7 @@ def generate_conversation(bedrock_client,
         "maxTokens": max_tokens,
     }
     # Send the message.
-    response = bedrock_client.converse(
+    response = client.converse(
         modelId=model_id,
         messages=messages,
         system=system_prompts,
@@ -85,7 +93,7 @@ def start_conversation_deep_seek_chat(content_in, previous_chat_history=[]):
             }
         )
         response = generate_conversation(
-            bedrock_client, model_id, system_prompts, message)
+            client, model_id, system_prompts, message)
         output_message = response['output']['message']
         for content in output_message["content"]:
             if not content:

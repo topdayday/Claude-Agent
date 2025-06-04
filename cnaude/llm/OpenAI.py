@@ -3,12 +3,14 @@ from openai import OpenAI
 
 
 clientDeepSeek = OpenAI(
-    api_key="{your-app-key}",  
+    api_key="api-key-deepseek",  
     base_url="https://api.deepseek.com",
+    timeout=6000
 )
 clientQWen = OpenAI(
-    api_key="{your-app-key}",  
+    api_key="api-key-qwen",  
     base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+    timeout=6000
 )
 
 

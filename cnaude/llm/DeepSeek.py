@@ -1,8 +1,17 @@
 import boto3
 import json
 from botocore.exceptions import ClientError
+from botocore.client import Config
 
-client = boto3.client("bedrock-runtime", region_name="us-west-2")
+# 配置超时（单位：秒）
+# 你可以根据你的需求调整这些值
+timeout_config = Config(
+    connect_timeout=60,  # 连接超时设置为60秒
+    read_timeout=600,     # 读取超时设置为600秒 (Bedrock 模型响应可能需要一些时间)
+    # 可选：配置重试次数
+    retries={'max_attempts': 3, 'mode': 'standard'}
+)
+client = boto3.client(service_name="bedrock-runtime", region_name="us-west-2", config=timeout_config)
 model_id = "us.deepseek.r1-v1:0"
 
 
