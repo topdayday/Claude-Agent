@@ -82,6 +82,7 @@ def start_conversation_llama(input_content, previous_chat_history='', model_inde
         response = bedrock.invoke_model(body=body, modelId=llama_model['model_id'])
         response_body = json.loads(response.get("body").read().decode('utf-8'))
         output_content = response_body.get("generation")
+        output_content = output_content.replace('<|eot_id|>', '')
     except BaseException as e:
         print(e.args)
     return output_content
