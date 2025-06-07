@@ -14,6 +14,7 @@ from cnaude.llm.DeepSeekCaht import translate_conversation_his_deep_seek
 from cnaude.llm.OpenAI import translate_conversation_his_openai
 from cnaude.utils.JwtTool import obtain_jwt_token, protected_view, generate_api_token
 from cnaude.utils.Captcha import captcha_base64
+from cnaude.utils.markdown_fixer import MarkdownFixer
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
 import markdown
@@ -22,6 +23,7 @@ from django.views.decorators.http import require_http_methods
 from cnaude.model.Models import Conversation, Member, Captcha, ConversationSerializer, MemberSerializer
 from datetime import datetime, timedelta
 import logging
+
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
@@ -35,18 +37,26 @@ md = markdown.Markdown(extensions=[
     'markdown.extensions.abbr',
     'markdown.extensions.admonition',
     'markdown.extensions.attr_list',
-    # 'markdown.extensions.autolink',
     'markdown.extensions.def_list',
     'markdown.extensions.footnotes',
-    # 'markdown.extensions.headerid',
     'markdown.extensions.meta',
     'markdown.extensions.nl2br',
-    # 'markdown.extensions.oauth2',
     'markdown.extensions.tables',
     'markdown.extensions.toc',
     'markdown.extensions.wikilinks',
-])
-
+    'markdown.extensions.sane_lists',
+    'markdown.extensions.smarty',
+], extension_configs={
+    'markdown.extensions.codehilite': {
+        'css_class': 'highlight',
+        'use_pygments': True,
+        'noclasses': True,
+        'linenums': False,
+        'guess_lang': True,
+        'pygments_style': 'monokai'
+    }
+})
+mdTools = MarkdownFixer()
 
 def get_md5(string):
     md5 = hashlib.md5()
@@ -142,12 +152,14 @@ def assistant(request):
         record.save()
         session_count_cache[session_id] = 1
         if record.reason_out:
-            reason_out = md.convert(record.reason_out)
-            reason_out = reason_out.replace('<pre>', '<div style="text-align:left;">')
-            reason_out = reason_out.replace('</pre>', '</div>')
+            # reason_out = md.convert(record.reason_out)
+            reason_out = mdTools.convert_to_html(record.reason_out, True)
+            # reason_out = reason_out.replace('<pre>', '<div style="text-align:left;">')
+            # reason_out = reason_out.replace('</pre>', '</div>')
             record.reason_out = reason_out
         if record.content_out:
-            content_out = md.convert(record.content_out)
+            # content_out = md.convert(record.content_out)
+            content_out = mdTools.convert_to_html(record.content_out, True)
             record.content_out = content_out
         conversations_serializer = ConversationSerializer(record, many=False)
         conversations_json = conversations_serializer.data
@@ -191,12 +203,14 @@ def list_session(request):
     records = Conversation.objects.filter(member_id=m_id, session_id=s_id, del_flag=0).order_by('id')
     for record in records:
         if record.reason_out:
-            reason_out = md.convert(record.reason_out)
-            reason_out = reason_out.replace('<pre>', '<div style="text-align:left;">')
-            reason_out = reason_out.replace('</pre>', '</div>')
+            # reason_out = md.convert(record.reason_out)
+            reason_out = mdTools.convert_to_html(record.reason_out, True)
+            # reason_out = reason_out.replace('<pre>', '<div style="text-align:left;">')
+            # reason_out = reason_out.replace('</pre>', '</div>')
             record.reason_out = reason_out
         if record.content_out:
-            content_out = md.convert(record.content_out)
+            # content_out = md.convert(record.content_out)
+            content_out =  mdTools.convert_to_html(record.content_out, True)
             record.content_out = content_out
     conversations_serializer = ConversationSerializer(records, many=True)
     conversations_json = conversations_serializer.data
