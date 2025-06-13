@@ -151,16 +151,18 @@ def assistant(request):
                               title_flag=title_flag, create_time=datetime.now())
         record.save()
         session_count_cache[session_id] = 1
-        if record.reason_out:
-            # reason_out = md.convert(record.reason_out)
-            reason_out = mdTools.convert_to_html(record.reason_out, True)
-            # reason_out = reason_out.replace('<pre>', '<div style="text-align:left;">')
-            # reason_out = reason_out.replace('</pre>', '</div>')
-            record.reason_out = reason_out
-        if record.content_out:
-            # content_out = md.convert(record.content_out)
-            content_out = mdTools.convert_to_html(record.content_out, True)
-            record.content_out = content_out
+        # if record.reason_out:
+        #     if record.model_type == 2:
+        #         reason_out = mdTools.convert_to_html(record.reason_out, True)
+        #     else:
+        #         reason_out = md.convert(record.reason_out)
+        #     record.reason_out = reason_out
+        # if record.content_out:
+        #     if record.model_type == 2:
+        #         content_out = mdTools.convert_to_html(record.content_out, True)
+        #     else:
+        #         content_out = md.convert(record.content_out)
+        #     record.content_out = content_out
         conversations_serializer = ConversationSerializer(record, many=False)
         conversations_json = conversations_serializer.data
     return JsonResponse({'code': 0, 'data': conversations_json})
@@ -201,17 +203,19 @@ def list_session(request):
         return JsonResponse({'code': 1, 'data': 'Invalid session'})
     m_id = token_info['id']
     records = Conversation.objects.filter(member_id=m_id, session_id=s_id, del_flag=0).order_by('id')
-    for record in records:
-        if record.reason_out:
-            # reason_out = md.convert(record.reason_out)
-            reason_out = mdTools.convert_to_html(record.reason_out, True)
-            # reason_out = reason_out.replace('<pre>', '<div style="text-align:left;">')
-            # reason_out = reason_out.replace('</pre>', '</div>')
-            record.reason_out = reason_out
-        if record.content_out:
-            # content_out = md.convert(record.content_out)
-            content_out =  mdTools.convert_to_html(record.content_out, True)
-            record.content_out = content_out
+    # for record in records:
+    #     if record.reason_out:
+    #         if record.model_type == 2:
+    #             reason_out = mdTools.convert_to_html(record.reason_out, True)
+    #         else:
+    #             reason_out = md.convert(record.reason_out)
+    #         record.reason_out = reason_out
+    #     if record.content_out:
+    #         if record.model_type == 2:
+    #             content_out = mdTools.convert_to_html(record.content_out, True)
+    #         else:
+    #             content_out = md.convert(record.content_out)
+    #         record.content_out = content_out
     conversations_serializer = ConversationSerializer(records, many=True)
     conversations_json = conversations_serializer.data
     return JsonResponse({'code': 0, 'data': conversations_json})
