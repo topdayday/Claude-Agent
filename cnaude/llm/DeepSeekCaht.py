@@ -70,11 +70,11 @@ def generate_conversation(client,
     )
 
     # Log token usage.
-    # token_usage = response['usage']
-    # logger.info("Input tokens: %s", token_usage['inputTokens'])
-    # logger.info("Output tokens: %s", token_usage['outputTokens'])
-    # logger.info("Total tokens: %s", token_usage['totalTokens'])
-    # logger.info("Stop reason: %s", response['stopReason'])
+    token_usage = response['usage']
+    logger.info("Input tokens: %s", token_usage['inputTokens'])
+    logger.info("Output tokens: %s", token_usage['outputTokens'])
+    logger.info("Total tokens: %s", token_usage['totalTokens'])
+    logger.info("Stop reason: %s", response['stopReason'])
 
     return response
 
@@ -82,6 +82,13 @@ def generate_conversation(client,
 def start_conversation_deep_seek_chat(content_in, previous_chat_history=[]):
     content_out = None
     reason_out = None
+    token_usage = {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model_name": "deepseek-r1-chat"
+    }
+    
     try:
         message = []
         if previous_chat_history:
@@ -95,6 +102,14 @@ def start_conversation_deep_seek_chat(content_in, previous_chat_history=[]):
         response = generate_conversation(
             client, model_id, system_prompts, message)
         output_message = response['output']['message']
+        
+        # 提取token使用信息
+        if 'usage' in response:
+            usage = response['usage']
+            token_usage["input_tokens"] = usage.get('inputTokens', 0)
+            token_usage["output_tokens"] = usage.get('outputTokens', 0)
+            token_usage["total_tokens"] = usage.get('totalTokens', token_usage["input_tokens"] + token_usage["output_tokens"])
+        
         for content in output_message["content"]:
             if not content:
                 continue
@@ -110,11 +125,13 @@ def start_conversation_deep_seek_chat(content_in, previous_chat_history=[]):
     else:
         print(
             f"Finished generating text with model {model_id}.")
-    return content_out, reason_out
+    
+    return content_out, reason_out, token_usage
 
 
 if __name__ == '__main__':
-    output1,  output2 = start_conversation_deep_seek_chat('who are you', [])
+    output1, output2, usage = start_conversation_deep_seek_chat('who are you', [])
     print(output2)
     print('==============================')
     print(output1)
+    print('Token Usage:', usage)

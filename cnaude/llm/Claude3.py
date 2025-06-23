@@ -119,6 +119,12 @@ def start_conversation_claude3(input_content, previous_chat_history=[], model_in
         "anthropic_version": claude_model['version']
     })
     output_content = ''
+    token_usage = {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model_name": claude_model['name']
+    }
     try:
         response = client.invoke_model(body=body, modelId=claude_model['model_id'])
         response_body = json.loads(response.get("body").read())
@@ -126,14 +132,24 @@ def start_conversation_claude3(input_content, previous_chat_history=[], model_in
         for  content in output_contents:
             if content['type'] == 'text':
                 output_content = content['text']
+        
+        # 提取token使用信息
+        usage = response_body.get("usage", {})
+        token_usage["input_tokens"] = usage.get("input_tokens", 0)
+        token_usage["output_tokens"] = usage.get("output_tokens", 0)
+        token_usage["total_tokens"] = token_usage["input_tokens"] + token_usage["output_tokens"]
+        
     except BaseException as e:
         print(e.args)
-    return output_content
+    
+    # 返回包含token使用信息的结果
+    return output_content, token_usage
 
 
 if __name__ == '__main__':
-    output = start_conversation_claude3('what is your name ?', None)
+    output, usage = start_conversation_claude3('what is your name ?', None)
     print(output)
+    print(usage)
 
 
 

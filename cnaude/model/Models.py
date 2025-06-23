@@ -60,6 +60,32 @@ class Captcha(models.Model):
         app_label = 'captcha'
 
 
+class TokenUsage(models.Model):
+    id = models.AutoField(primary_key=True)
+    member_id = models.PositiveIntegerField()  # 用户ID
+    conversation_id = models.PositiveIntegerField(null=True, blank=True)  # 对话ID，关联到Conversation
+    session_id = models.CharField(max_length=255, null=True, blank=True)  # 会话ID
+    model_type = models.PositiveSmallIntegerField()  # 模型类型
+    model_name = models.CharField(max_length=100, null=True, blank=True)  # 模型名称
+    input_tokens = models.PositiveIntegerField(default=0)  # 输入token数
+    output_tokens = models.PositiveIntegerField(default=0)  # 输出token数
+    total_tokens = models.PositiveIntegerField(default=0)  # 总token数
+    create_time = models.DateTimeField()  # 创建时间
+
+    class Meta:
+        db_table = 't_token_usage'
+        verbose_name = 'token_usage'
+        verbose_name_plural = 'token_usage'
+        app_label = 'token_usage'
+        indexes = [
+            models.Index(fields=['member_id', 'create_time']),
+            models.Index(fields=['member_id', 'model_type']),
+        ]
+
+    def __str__(self):
+        return f"TokenUsage-{self.id}"
+
+
 class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
@@ -70,3 +96,10 @@ class MemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Member
         fields = ('id','login_name', 'mobile',  'email', 'create_time', 'last_login_time')
+
+
+class TokenUsageSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TokenUsage
+        fields = ('id', 'member_id', 'conversation_id', 'session_id', 'model_type', 'model_name', 
+                  'input_tokens', 'output_tokens', 'total_tokens', 'create_time')

@@ -78,19 +78,36 @@ def start_conversation_llama(input_content, previous_chat_history='', model_inde
         "top_p": 0.9,
     })
     output_content = ''
+    token_usage = {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model_name": llama_model['name']
+    }
+    
     try:
         response = bedrock.invoke_model(body=body, modelId=llama_model['model_id'])
         response_body = json.loads(response.get("body").read().decode('utf-8'))
         output_content = response_body.get("generation")
         output_content = output_content.replace('<|eot_id|>', '')
+        
+        # 提取token使用信息
+        if "usage" in response_body:
+            usage = response_body["usage"]
+            token_usage["input_tokens"] = usage.get("prompt_tokens", 0)
+            token_usage["output_tokens"] = usage.get("generation_tokens", 0)
+            token_usage["total_tokens"] = usage.get("total_tokens", token_usage["input_tokens"] + token_usage["output_tokens"])
+        
     except BaseException as e:
         print(e.args)
-    return output_content
+    
+    return output_content, token_usage
 
 
 if __name__ == '__main__':
-    output = start_conversation_llama('what is your name ?')
+    output, usage = start_conversation_llama('what is your name ?')
     print(output)
+    print('Token Usage:', usage)
 
 
 

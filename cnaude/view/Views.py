@@ -20,13 +20,34 @@ from django.views.decorators.csrf import csrf_exempt
 import markdown
 import hashlib
 from django.views.decorators.http import require_http_methods
-from cnaude.model.Models import Conversation, Member, Captcha, ConversationSerializer, MemberSerializer
+from cnaude.model.Models import Conversation, Member, Captcha, ConversationSerializer, MemberSerializer, TokenUsage, TokenUsageSerializer
 from datetime import datetime, timedelta
+from django.db.models import Sum, Count
+from django.utils import timezone
 import logging
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+
+def save_token_usage(member_id, conversation_id, session_id, model_type, token_usage):
+    """保存token使用统计信息到数据库"""
+    try:
+        token_record = TokenUsage(
+            member_id=member_id,
+            conversation_id=conversation_id,
+            session_id=session_id,
+            model_type=model_type,
+            model_name=token_usage.get('model_name', ''),
+            input_tokens=token_usage.get('input_tokens', 0),
+            output_tokens=token_usage.get('output_tokens', 0),
+            total_tokens=token_usage.get('total_tokens', 0),
+            create_time=datetime.now()
+        )
+        token_record.save()
+        logger.info(f"Token usage saved for member {member_id}: {token_usage}")
+    except Exception as e:
+        logger.error(f"Failed to save token usage: {e}")
 
 
 session_count_cache = {}
@@ -89,25 +110,27 @@ def assistant(request):
     m_type = str(model_type)
     if content_in and session_id:
         reason_out = None
+        token_usage = None
+        
         if m_type == '50':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_deep_seek(records)
             if len(previous_content_in) > 0:
-                content_out, reason_out = start_conversation_deep_seek_chat(content_in, previous_content_in)
+                content_out, reason_out, token_usage = start_conversation_deep_seek_chat(content_in, previous_content_in)
             else:
-                content_out, reason_out = start_conversation_deepseek(content_in)
+                content_out, reason_out, token_usage = start_conversation_deepseek(content_in)
         elif m_type == '40':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_openai(records)
-            content_out = start_conversation_openai(content_in, previous_content_in, 1)
+            content_out, token_usage = start_conversation_openai(content_in, previous_content_in, 1)
         elif m_type == '1':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_v3(records)
-            content_out = start_conversation_claude3(content_in, previous_content_in)
+            content_out, token_usage = start_conversation_claude3(content_in, previous_content_in)
         elif m_type == '2':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_gemini(records)
-            content_out = start_conversation_gemini(content_in, previous_content_in)
+            content_out, token_usage = start_conversation_gemini(content_in, previous_content_in)
         elif m_type == '20':
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_genai(records)
@@ -135,7 +158,7 @@ def assistant(request):
             records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
             previous_content_in = translate_conversation_his_llama(records)
             reason_out = None
-            content_out = start_conversation_llama(content_in, previous_content_in)
+            content_out, token_usage = start_conversation_llama(content_in, previous_content_in)
         else:
             return JsonResponse({'code': 1, 'data': 'Invalid parameter'})
 
@@ -150,6 +173,11 @@ def assistant(request):
                               content_out=content_out, reason_out=reason_out, model_type=model_type,
                               title_flag=title_flag, create_time=datetime.now())
         record.save()
+        
+        # 保存token使用统计
+        if token_usage:
+            save_token_usage(member_id, record.id, session_id, model_type, token_usage)
+        
         session_count_cache[session_id] = 1
         # if record.reason_out:
         #     if record.model_type == 2:
@@ -404,3 +432,187 @@ def list_llm(request):
         
     ]
     return JsonResponse({'code': 0, 'data': models})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def token_usage_stats(request):
+    """获取用户的token使用统计信息"""
+    token_info = get_token_info(request)
+    if not token_info:
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
+    
+    member_id = token_info['id']
+    page_number = request.POST.get('page_number', 0)
+    page_size = request.POST.get('page_size', 20)
+    
+    try:
+        page_number = int(page_number)
+        page_size = int(page_size)
+        if page_size > 100:  # 限制每页最大数量
+            page_size = 100
+    except ValueError:
+        return JsonResponse({'code': 1, 'data': 'Invalid parameter'})
+    
+    # 获取用户的token使用记录
+    records = TokenUsage.objects.filter(member_id=member_id).order_by('-create_time')[
+        page_number * page_size:(page_number + 1) * page_size
+    ]
+    
+    token_usage_serializer = TokenUsageSerializer(records, many=True)
+    token_usage_json = token_usage_serializer.data
+    
+    return JsonResponse({'code': 0, 'data': token_usage_json})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def token_usage_summary(request):
+    """获取用户的token使用汇总统计"""
+    token_info = get_token_info(request)
+    if not token_info:
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
+    
+    member_id = token_info['id']
+    start_date = request.POST.get('start_date')  # 格式: YYYY-MM-DD
+    end_date = request.POST.get('end_date')      # 格式: YYYY-MM-DD
+    
+    # 构建查询条件
+    query_filter = {'member_id': member_id}
+    
+    if start_date:
+        try:
+            start_datetime = datetime.strptime(start_date, '%Y-%m-%d')
+            query_filter['create_time__gte'] = start_datetime
+        except ValueError:
+            return JsonResponse({'code': 1, 'data': 'Invalid start_date format, use YYYY-MM-DD'})
+    
+    if end_date:
+        try:
+            end_datetime = datetime.strptime(end_date, '%Y-%m-%d') + timedelta(days=1)
+            query_filter['create_time__lt'] = end_datetime
+        except ValueError:
+            return JsonResponse({'code': 1, 'data': 'Invalid end_date format, use YYYY-MM-DD'})
+    
+    # 获取统计数据
+    
+    # 总体统计
+    total_stats = TokenUsage.objects.filter(**query_filter).aggregate(
+        total_calls=Count('id'),
+        total_input_tokens=Sum('input_tokens'),
+        total_output_tokens=Sum('output_tokens'),
+        total_tokens=Sum('total_tokens')
+    )
+    
+    # 按模型类型统计
+    model_stats = []
+    model_types = TokenUsage.objects.filter(**query_filter).values('model_type', 'model_name').distinct()
+    
+    for model_type in model_types:
+        model_usage = TokenUsage.objects.filter(
+            **query_filter,
+            model_type=model_type['model_type']
+        ).aggregate(
+            calls=Count('id'),
+            input_tokens=Sum('input_tokens'),
+            output_tokens=Sum('output_tokens'),
+            total_tokens=Sum('total_tokens')
+        )
+        
+        model_stats.append({
+            'model_type': model_type['model_type'],
+            'model_name': model_type['model_name'],
+            'calls': model_usage['calls'] or 0,
+            'input_tokens': model_usage['input_tokens'] or 0,
+            'output_tokens': model_usage['output_tokens'] or 0,
+            'total_tokens': model_usage['total_tokens'] or 0
+        })
+    
+    # 按日期统计（最近7天）
+    import pytz
+    
+    daily_stats = []
+    for i in range(7):
+        date = timezone.now().date() - timedelta(days=i)
+        day_start = datetime.combine(date, datetime.min.time())
+        day_end = datetime.combine(date, datetime.max.time())
+        
+        day_usage = TokenUsage.objects.filter(
+            member_id=member_id,
+            create_time__gte=day_start,
+            create_time__lte=day_end
+        ).aggregate(
+            calls=Count('id'),
+            input_tokens=Sum('input_tokens'),
+            output_tokens=Sum('output_tokens'),
+            total_tokens=Sum('total_tokens')
+        )
+        
+        daily_stats.append({
+            'date': date.strftime('%Y-%m-%d'),
+            'calls': day_usage['calls'] or 0,
+            'input_tokens': day_usage['input_tokens'] or 0,
+            'output_tokens': day_usage['output_tokens'] or 0,
+            'total_tokens': day_usage['total_tokens'] or 0
+        })
+    
+    summary_data = {
+        'total_stats': {
+            'total_calls': total_stats['total_calls'] or 0,
+            'total_input_tokens': total_stats['total_input_tokens'] or 0,
+            'total_output_tokens': total_stats['total_output_tokens'] or 0,
+            'total_tokens': total_stats['total_tokens'] or 0
+        },
+        'model_stats': model_stats,
+        'daily_stats': daily_stats
+    }
+    
+    return JsonResponse({'code': 0, 'data': summary_data})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def token_usage_daily(request):
+    """获取用户每日token使用统计"""
+    token_info = get_token_info(request)
+    if not token_info:
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
+    
+    member_id = token_info['id']
+    days = request.POST.get('days', 30)  # 默认查询最近30天
+    
+    try:
+        days = int(days)
+        if days > 365:  # 限制最多查询1年
+            days = 365
+    except ValueError:
+        return JsonResponse({'code': 1, 'data': 'Invalid days parameter'})
+    
+
+    
+    daily_stats = []
+    for i in range(days):
+        date = timezone.now().date() - timedelta(days=i)
+        day_start = datetime.combine(date, datetime.min.time())
+        day_end = datetime.combine(date, datetime.max.time())
+        
+        day_usage = TokenUsage.objects.filter(
+            member_id=member_id,
+            create_time__gte=day_start,
+            create_time__lte=day_end
+        ).aggregate(
+            calls=Count('id'),
+            input_tokens=Sum('input_tokens'),
+            output_tokens=Sum('output_tokens'),
+            total_tokens=Sum('total_tokens')
+        )
+        
+        daily_stats.append({
+            'date': date.strftime('%Y-%m-%d'),
+            'calls': day_usage['calls'] or 0,
+            'input_tokens': day_usage['input_tokens'] or 0,
+            'output_tokens': day_usage['output_tokens'] or 0,
+            'total_tokens': day_usage['total_tokens'] or 0
+        })
+    
+    return JsonResponse({'code': 0, 'data': daily_stats})

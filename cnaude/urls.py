@@ -30,5 +30,8 @@ urlpatterns = [
     path('cnaude/member_edit/', member_edit),
     path('cnaude/del_conversation/', del_conversation),
     path('cnaude/list_llm/', list_llm),
-
+    # Token使用統計相關API
+    path('cnaude/token_usage_stats/', token_usage_stats),
+    path('cnaude/token_usage_summary/', token_usage_summary),
+    path('cnaude/token_usage_daily/', token_usage_daily),
 ]

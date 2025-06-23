@@ -124,6 +124,13 @@ def start_conversation_gemini(content_in, previous_chat_history=[], model_index=
     }
     input_content = []
     output_content = ''
+    token_usage = {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model_name": model_data['model_id']
+    }
+    
     input_content_obj = {"role": "user", "content": content_in}
     if previous_chat_history:
         input_content.extend(previous_chat_history)
@@ -134,16 +141,25 @@ def start_conversation_gemini(content_in, previous_chat_history=[], model_index=
     try:
         message_out = chat.send_message(output_content_str, generation_config=config)
         output_content = message_out.candidates[0].content.parts[0].text
+        
+        # 提取token使用信息
+        if hasattr(message_out, 'usage_metadata') and message_out.usage_metadata:
+            usage_metadata = message_out.usage_metadata
+            token_usage["input_tokens"] = getattr(usage_metadata, 'prompt_token_count', 0)
+            token_usage["output_tokens"] = getattr(usage_metadata, 'candidates_token_count', 0)
+            token_usage["total_tokens"] = getattr(usage_metadata, 'total_token_count', token_usage["input_tokens"] + token_usage["output_tokens"])
+        
     except ResponseBlockedError as e:
-
         print(e.args)
-    return output_content
+    
+    return output_content, token_usage
 
 
 if __name__ == '__main__':
     test = 'who are you ?'
-    output = start_conversation_gemini(test)
+    output, usage = start_conversation_gemini(test)
     print('===>  ' + output)
+    print('Token Usage:', usage)
     # for model_idx in range(5):
     #     output = start_conversation_gemini('what is your name ?', model_idx)
     #     print(models_data[model_idx]['model_id'] + '===>  ' + output)

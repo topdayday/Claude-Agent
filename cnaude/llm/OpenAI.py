@@ -48,15 +48,26 @@ def start_conversation_openai(input_content, previous_chat_history=[], model_ind
             }
         ])
     output_content = ''
+    token_usage = {
+        "input_tokens": 0,
+        "output_tokens": 0,
+        "total_tokens": 0,
+        "model_name": ""
+    }
+    
     if model_index == 0:
         model_client = clientDeepSeek
         if len(message) == 1:
             model_id = 'deepseek-reasoner'
+            token_usage["model_name"] = "deepseek-reasoner"
         else:
             model_id = 'deepseek-chat'
+            token_usage["model_name"] = "deepseek-chat"
     elif model_index == 1:    
         model_client = clientQWen
         model_id = 'qwen-max-2025-01-25'
+        token_usage["model_name"] = "qwen-max-2025-01-25"
+    
     try:
         response = model_client.chat.completions.create( 
           model= model_id,
@@ -64,6 +75,14 @@ def start_conversation_openai(input_content, previous_chat_history=[], model_ind
           stream=False
         )
         output_content=response.choices[0].message.content
+        
+        # 提取token使用信息
+        if hasattr(response, 'usage') and response.usage:
+            token_usage["input_tokens"] = response.usage.prompt_tokens if hasattr(response.usage, 'prompt_tokens') else 0
+            token_usage["output_tokens"] = response.usage.completion_tokens if hasattr(response.usage, 'completion_tokens') else 0
+            token_usage["total_tokens"] = response.usage.total_tokens if hasattr(response.usage, 'total_tokens') else token_usage["input_tokens"] + token_usage["output_tokens"]
+        
     except BaseException as e:
         print(e.args)
-    return output_content
+    
+    return output_content, token_usage
