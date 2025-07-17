@@ -1,5 +1,5 @@
 from cnaude.llm.Claude2 import start_conversation_claude2, translate_conversation_his_v2
-from cnaude.llm.Claude3 import start_conversation_claude3, translate_conversation_his_v3
+from cnaude.llm.Claude3 import start_conversation_claude3, start_conversation_claude3_with_documents, translate_conversation_his_v3
 from cnaude.llm.Codey import start_conversation_codey
 from cnaude.llm.Gemini import start_conversation_gemini, translate_conversation_his_gemini
 from cnaude.llm.GenaiStudio import start_conversation_genai, translate_conversation_his_genai
@@ -14,15 +14,21 @@ from cnaude.llm.DeepSeekCaht import translate_conversation_his_deep_seek
 from cnaude.llm.OpenAI import translate_conversation_his_openai
 from cnaude.utils.JwtTool import obtain_jwt_token, protected_view, generate_api_token
 from cnaude.utils.Captcha import captcha_base64
-from cnaude.utils.markdown_fixer import MarkdownFixer
-from django.http import JsonResponse
+# from cnaude.utils.markdown_fixer import MarkdownFixer
+from django.http import JsonResponse, HttpResponse, Http404
 from django.views.decorators.csrf import csrf_exempt
 import markdown
 import hashlib
 from django.views.decorators.http import require_http_methods
-from cnaude.model.Models import Conversation, Member, Captcha, ConversationSerializer, MemberSerializer
+from cnaude.model.Models import Conversation, Member, Captcha, Attachment, ConversationSerializer, MemberSerializer, AttachmentSerializer
 from datetime import datetime, timedelta
 import logging
+import os,json
+from django.core.files.storage import default_storage
+from django.core.files.base import ContentFile
+import uuid
+import mimetypes
+from urllib.parse import quote
 
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
@@ -56,7 +62,7 @@ md = markdown.Markdown(extensions=[
         'pygments_style': 'monokai'
     }
 })
-mdTools = MarkdownFixer()
+# mdTools = MarkdownFixer()
 
 def get_md5(string):
     md5 = hashlib.md5()
@@ -70,102 +76,293 @@ def get_token_info(request):
     return token_info
 
 
+def check_daily_usage_limit(member_id):
+    """Check if user has exceeded daily usage limit"""
+    midnight_datetime = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
+    count = Conversation.objects.filter(member_id=member_id, create_time__gte=midnight_datetime).count()
+    if count > 10:
+        m_count = Member.objects.filter(id=member_id, vip_level__gt=0).count()
+        if m_count == 0:
+            return False
+    return True
+
+
+def get_conversation_history(session_id):
+    """Get conversation history for a session"""
+    return Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+
+
+def process_llm_request(model_type, content_in, session_id, uploaded_files=None):
+    """Process LLM request based on model type"""
+    m_type = str(model_type)
+    records = get_conversation_history(session_id)
+    content_out = None
+    reason_out = None
+    
+    if m_type == '50':  # DeepSeek
+        previous_content_in = translate_conversation_his_deep_seek(records)
+        if len(previous_content_in) > 0:
+            content_out, reason_out = start_conversation_deep_seek_chat(content_in, previous_content_in)
+        else:
+            content_out, reason_out = start_conversation_deepseek(content_in)
+            
+    elif m_type == '40':  # OpenAI/Qwen
+        previous_content_in = translate_conversation_his_openai(records)
+        content_out = start_conversation_openai(content_in, previous_content_in, 1)
+        
+    elif m_type == '1':  # Claude
+        previous_content_in = translate_conversation_his_v3(records)
+        if uploaded_files:
+            content_out = start_conversation_claude3_with_documents(
+                input_content=content_in if content_in else None,
+                input_files=uploaded_files,
+                previous_chat_history=previous_content_in
+            )
+        else:
+            content_out = start_conversation_claude3(content_in, previous_content_in)
+            
+    elif m_type == '2':  # Gemini
+        previous_content_in = translate_conversation_his_gemini(records)
+        if uploaded_files:
+            file_paths = [f['path'] for f in uploaded_files]
+            content_out = start_conversation_gemini(
+                content_in if content_in else "请分析这些文件",
+                previous_content_in,
+                file_paths=file_paths
+            )
+        else:
+            content_out = start_conversation_gemini(content_in, previous_content_in)
+            
+    elif m_type == '20':  # GenAI Studio
+        previous_content_in = translate_conversation_his_genai(records)
+        content_out = start_conversation_genai(content_in, previous_content_in)
+        
+    elif m_type == '10':  # Llama
+        previous_content_in = translate_conversation_his_llama(records)
+        content_out = start_conversation_llama(content_in, previous_content_in)
+        
+    else:
+        return None, None, 'Invalid model type'
+    
+    return content_out, reason_out, None
+
+
+def save_conversation_record(member_id, session_id, content_in, content_out, reason_out, model_type):
+    """Save conversation record to database"""
+    display_content = content_in.replace('\n', '<br>') if content_in else '[附件]'
+    session_count = session_count_cache.get(session_id, 0)
+    title_flag = False
+    if session_count < 1 and Conversation.objects.filter(session_id=session_id).count() == 0:
+        title_flag = True
+        
+    record = Conversation(
+        member_id=member_id,
+        session_id=session_id,
+        content_in=display_content,
+        content_out=content_out,
+        reason_out=reason_out,
+        model_type=model_type,
+        title_flag=title_flag,
+        create_time=datetime.now()
+    )
+    record.save()
+    session_count_cache[session_id] = 1
+    return record
+
+
 @csrf_exempt
 @require_http_methods(["POST"])
 def assistant(request):
     content_in = request.POST.get('content_in')
     session_id = request.POST.get('session_id')
     model_type = request.POST.get('model_type')
+    
     token_info = get_token_info(request)
     if not token_info:
         return JsonResponse({'code': -1, 'data': 'Token verification failed'})
+    
     member_id = token_info['id']
-    midnight_datetime = datetime.now().replace(hour=0, minute=0, second=0, microsecond=0)
-    count = Conversation.objects.filter(member_id=member_id, create_time__gte=midnight_datetime).count()
-    if count > 10:
-        m_count = Member.objects.filter(id=member_id, vip_level__gt=0).count()
-        if m_count == 0:
-            return JsonResponse({'code': 1, 'data': 'The maximum usage is 10 requests per day'})
-    m_type = str(model_type)
-    if content_in and session_id:
-        reason_out = None
-        if m_type == '50':
-            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            previous_content_in = translate_conversation_his_deep_seek(records)
-            if len(previous_content_in) > 0:
-                content_out, reason_out = start_conversation_deep_seek_chat(content_in, previous_content_in)
-            else:
-                content_out, reason_out = start_conversation_deepseek(content_in)
-        elif m_type == '40':
-            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            previous_content_in = translate_conversation_his_openai(records)
-            content_out = start_conversation_openai(content_in, previous_content_in, 1)
-        elif m_type == '1':
-            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            previous_content_in = translate_conversation_his_v3(records)
-            content_out = start_conversation_claude3(content_in, previous_content_in)
-        elif m_type == '2':
-            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            previous_content_in = translate_conversation_his_gemini(records)
-            content_out = start_conversation_gemini(content_in, previous_content_in)
-        elif m_type == '20':
-            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            previous_content_in = translate_conversation_his_genai(records)
-            content_out = start_conversation_genai(content_in, previous_content_in)
-            # from cnaude.llm.GenaiStudio import start_conversation_genai, translate_conversation_his_genai
-        # elif m_type == '0':
-        #     records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-        #     previous_content_in = translate_conversation_his_v2(records)
-        #     content_out = start_conversation_claude2(content_in, previous_content_in)    
-        # elif m_type == '3':
-        #     records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-        #     previous_content_in = translate_conversation_his_mistral(records)
-        #     content_out = start_conversation_mistral(content_in, previous_content_in)
-        # elif m_type == '4':
-        #     records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-        #     previous_content_in = translate_conversation_his_gemini(records)
-        #     content_out = start_conversation_palm2(content_in, previous_content_in)
-        # elif m_type == '5':
-        #     records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-        #     previous_content_in = translate_conversation_his_gemini(records)
-        #     content_out = start_conversation_codey(content_in, previous_content_in)
-        # elif m_type == '6':
-        #     content_out = start_conversation_unicorn_text(content_in, 0)
-        elif m_type == '10':
-            records = Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
-            previous_content_in = translate_conversation_his_llama(records)
-            reason_out = None
-            content_out = start_conversation_llama(content_in, previous_content_in)
-        else:
-            return JsonResponse({'code': 1, 'data': 'Invalid parameter'})
+    
+    # Check daily usage limit
+    if not check_daily_usage_limit(member_id):
+        return JsonResponse({'code': 1, 'data': 'The maximum usage is 10 requests per day'})
+    
+    if not content_in or not session_id:
+        return JsonResponse({'code': 1, 'data': 'Missing required parameters'})
+    
+    # Process LLM request
+    content_out, reason_out, error = process_llm_request(model_type, content_in, session_id)
+    
+    if error:
+        return JsonResponse({'code': 1, 'data': error})
+    
+    if not content_out and not reason_out:
+        return JsonResponse({'code': 1, 'data': 'The service is busy. Please try again'})
+    
+    # Save conversation record
+    record = save_conversation_record(member_id, session_id, content_in, content_out, reason_out, model_type)
+    
+    attachments = Attachment.objects.filter(conversation_id__in=[record.id])
+    attachments_serializer = AttachmentSerializer(attachments, many=True)
+    attachments_json = attachments_serializer.data   
+    
+    conversations_serializer = ConversationSerializer(record, many=False)
+    conversations_json = conversations_serializer.data
+    return JsonResponse({'code': 0, 'data': conversations_json,'attachments':attachments_json})
 
+
+def save_uploaded_file(uploaded_file, member_id):
+    """Save uploaded file and return file info"""
+    # Generate unique filename
+    file_extension = os.path.splitext(uploaded_file.name)[1]
+    unique_filename = f"{uuid.uuid4()}{file_extension}"
+    
+    # Create directory structure: media/uploads/member_id/yyyymmdd/
+    from datetime import datetime
+    date_str = datetime.now().strftime('%Y%m%d')
+    upload_path = f"uploads/{member_id}/{date_str}/"
+    
+    # Save file
+    file_path = default_storage.save(
+        os.path.join(upload_path, unique_filename),
+        ContentFile(uploaded_file.read())
+    )
+    
+    # Get file info
+    file_info = {
+        'original_name': uploaded_file.name,
+        'saved_path': os.path.join(default_storage.location, file_path),
+        'relative_path': file_path,
+        'size': uploaded_file.size,
+        'content_type': uploaded_file.content_type or 'application/octet-stream'
+    }
+    
+    return file_info
+
+
+def determine_file_type(content_type, filename):
+    """Determine if file is image, document, etc."""
+    if content_type.startswith('image/'):
+        return 'image'
+    elif content_type in ['application/pdf', 'application/msword', 
+                         'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+                         'text/plain', 'text/csv', 'application/json']:
+        return 'document'
+    else:
+        # Check by file extension
+        ext = os.path.splitext(filename)[1].lower()
+        if ext in ['.jpg', '.jpeg', '.png', '.gif', '.webp']:
+            return 'image'
+        elif ext in ['.pdf', '.doc', '.docx', '.txt', '.csv', '.json']:
+            return 'document'
+        else:
+            return 'document'  # Default to document
+
+
+def process_file_attachments(request, member_id):
+    """Process file attachments from request"""
+    uploaded_files = []
+    attachment_records = []
+    
+    for key in request.FILES:
+        if key.startswith('attachments'):
+            uploaded_file = request.FILES[key]
+            
+            # Save file
+            file_info = save_uploaded_file(uploaded_file, member_id)
+            
+            # Determine file type
+            file_type = determine_file_type(file_info['content_type'], file_info['original_name'])
+            
+            uploaded_files.append({
+                'path': file_info['saved_path'],
+                'type': file_type
+            })
+            
+            # Prepare attachment record (will save after conversation is created)
+            attachment_records.append({
+                'file_name': file_info['original_name'],
+                'file_path': file_info['relative_path'],
+                'file_type': file_type,
+                'file_size': file_info['size'],
+                'mime_type': file_info['content_type']
+            })
+    
+    return uploaded_files, attachment_records
+
+
+def save_attachment_records(conversation_id, attachment_records):
+    """Save attachment records to database"""
+    for attachment_data in attachment_records:
+        attachment = Attachment(
+            conversation_id=conversation_id,
+            file_name=attachment_data['file_name'],
+            file_path=attachment_data['file_path'],
+            file_type=attachment_data['file_type'],
+            file_size=attachment_data['file_size'],
+            mime_type=attachment_data['mime_type'],
+            create_time=datetime.now()
+        )
+        attachment.save()
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def assistant_with_attachments(request):
+    """Handle assistant requests with file attachments"""
+    token_info = get_token_info(request)
+    if not token_info:
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
+    
+    member_id = token_info['id']
+    content_in = request.POST.get('content', '').strip()
+    session_id = request.POST.get('session_id')
+    model_type = request.POST.get('model_type')
+    
+    if not session_id or not model_type:
+        return JsonResponse({'code': 1, 'data': 'Missing required parameters'})
+    
+    # Check daily usage limit
+    if not check_daily_usage_limit(member_id):
+        return JsonResponse({'code': 1, 'data': 'The maximum usage is 10 requests per day'})
+    
+    try:
+        # Process file attachments
+        uploaded_files, attachment_records = process_file_attachments(request, member_id)
+        
+        # Ensure we have either content or attachments
+        if not content_in and not uploaded_files:
+            return JsonResponse({'code': 1, 'data': 'No content or attachments provided'})
+        
+        # Process LLM request with attachments
+        content_out, reason_out, error = process_llm_request(model_type, content_in, session_id, uploaded_files)
+        
+        if error:
+            return JsonResponse({'code': 1, 'data': error})
+        
         if not content_out and not reason_out:
             return JsonResponse({'code': 1, 'data': 'The service is busy. Please try again'})
-        content_in = content_in.replace('\n', '<br>')
-        session_count = session_count_cache.get(session_id, 0)
-        title_flag = False
-        if session_count < 1 and Conversation.objects.filter(session_id=session_id).count() == 0:
-            title_flag = True
-        record = Conversation(member_id=member_id, session_id=session_id, content_in=content_in,
-                              content_out=content_out, reason_out=reason_out, model_type=model_type,
-                              title_flag=title_flag, create_time=datetime.now())
-        record.save()
-        session_count_cache[session_id] = 1
-        # if record.reason_out:
-        #     if record.model_type == 2:
-        #         reason_out = mdTools.convert_to_html(record.reason_out, True)
-        #     else:
-        #         reason_out = md.convert(record.reason_out)
-        #     record.reason_out = reason_out
-        # if record.content_out:
-        #     if record.model_type == 2:
-        #         content_out = mdTools.convert_to_html(record.content_out, True)
-        #     else:
-        #         content_out = md.convert(record.content_out)
-        #     record.content_out = content_out
-        conversations_serializer = ConversationSerializer(record, many=False)
+        
+        # Save conversation record
+        conversation = save_conversation_record(member_id, session_id, content_in, content_out, reason_out, model_type)
+        
+        # Save attachment records
+        save_attachment_records(conversation.id, attachment_records)
+        
+        # Return response
+        conversations_serializer = ConversationSerializer(conversation, many=False)
         conversations_json = conversations_serializer.data
-    return JsonResponse({'code': 0, 'data': conversations_json})
+        
+        
+        attachments = Attachment.objects.filter(conversation_id__in=[conversation.id])
+        attachments_serializer = AttachmentSerializer(attachments, many=True)
+        attachments_json = attachments_serializer.data   
+         
+        return JsonResponse({'code': 0, 'data': conversations_json,'attachments':attachments_json})
+        
+    except Exception as e:
+        logger.error(f"Error in assistant_with_attachments: {str(e)}")
+        return JsonResponse({'code': 1, 'data': f'处理请求时出错: {str(e)}'})
 
 
 @csrf_exempt
@@ -173,6 +370,14 @@ def assistant(request):
 def latest_session(request):
     token_info = get_token_info(request)
     page_number = request.POST.get('page_number')
+    filter_date = request.POST.get('filter_date')
+    if filter_date:
+        filter_date += ' 23:59:59'
+        try:
+            filter_date = datetime.strptime(filter_date, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            return JsonResponse({'code': 1, 'data': 'Invalid date format'})
+        
     if not page_number:
         page_number = 0
     try:
@@ -183,13 +388,23 @@ def latest_session(request):
     if not token_info:
         return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     m_id = token_info['id']
-    records = Conversation.objects.filter(member_id=m_id, del_flag=0, title_flag=True).order_by('-id')[
+    if filter_date:
+        records = Conversation.objects.filter(member_id=m_id, del_flag=0, title_flag=True, create_time__lte=filter_date).order_by('-id')[
               page_number * 30:(page_number + 1) * 30]
+    else:    
+        records = Conversation.objects.filter(member_id=m_id, del_flag=0, title_flag=True).order_by('-id')[
+                page_number * 30:(page_number + 1) * 30]
+    conversation_ids = []    
     for record in records:
         session_count_cache[record.session_id] = 1
+        conversation_ids.append(record.id)
+    attachments = Attachment.objects.filter(conversation_id__in=conversation_ids)
+    attachments_serializer = AttachmentSerializer(attachments, many=True)
+    attachments_json = attachments_serializer.data    
+    
     conversations_serializer = ConversationSerializer(records, many=True)
     conversations_json = conversations_serializer.data
-    return JsonResponse({'code': 0, 'data': conversations_json})
+    return JsonResponse({'code': 0, 'data': conversations_json,'attachments':attachments_json})
 
 
 @csrf_exempt
@@ -203,22 +418,16 @@ def list_session(request):
         return JsonResponse({'code': 1, 'data': 'Invalid session'})
     m_id = token_info['id']
     records = Conversation.objects.filter(member_id=m_id, session_id=s_id, del_flag=0).order_by('id')
-    # for record in records:
-    #     if record.reason_out:
-    #         if record.model_type == 2:
-    #             reason_out = mdTools.convert_to_html(record.reason_out, True)
-    #         else:
-    #             reason_out = md.convert(record.reason_out)
-    #         record.reason_out = reason_out
-    #     if record.content_out:
-    #         if record.model_type == 2:
-    #             content_out = mdTools.convert_to_html(record.content_out, True)
-    #         else:
-    #             content_out = md.convert(record.content_out)
-    #         record.content_out = content_out
+    
+    conversation_ids = [record.id for record in records]
+    attachments = Attachment.objects.filter(conversation_id__in=conversation_ids)
+    
+    attachments_serializer = AttachmentSerializer(attachments, many=True)
+    attachments_json = attachments_serializer.data
+    
     conversations_serializer = ConversationSerializer(records, many=True)
     conversations_json = conversations_serializer.data
-    return JsonResponse({'code': 0, 'data': conversations_json})
+    return JsonResponse({'code': 0, 'data': conversations_json, 'attachments':attachments_json})
 
 
 @csrf_exempt
@@ -404,3 +613,73 @@ def list_llm(request):
         
     ]
     return JsonResponse({'code': 0, 'data': models})
+
+
+@csrf_exempt
+@require_http_methods(["GET"])
+def download_attachment(request, attachment_id):
+    """根据附件ID下载附件"""
+    try:
+        # 验证用户token（从GET参数获取）
+        token = request.GET.get('token')
+        if not token:
+            return JsonResponse({'code': -1, 'data': 'Token is required'}, status=401)
+        
+        token_info = protected_view(token)
+        if not token_info:
+            return JsonResponse({'code': -1, 'data': 'Token verification failed'}, status=401)
+        
+        member_id = token_info['id']
+        
+        # 查找附件记录
+        try:
+            attachment = Attachment.objects.get(id=attachment_id)
+        except Attachment.DoesNotExist:
+            return JsonResponse({'code': 1, 'data': 'Attachment not found'}, status=404)
+        
+        # 验证权限：检查附件是否属于该用户的对话
+        conversation = Conversation.objects.filter(
+            id=attachment.conversation_id, 
+            member_id=member_id,
+            del_flag=False
+        ).first()
+        
+        if not conversation:
+            return JsonResponse({'code': -1, 'data': 'Access denied'}, status=403)
+        
+        # 构建文件完整路径
+        file_path = os.path.join(default_storage.location, attachment.file_path)
+        
+        # 检查文件是否存在
+        if not os.path.exists(file_path):
+            return JsonResponse({'code': 1, 'data': 'File not found on server'}, status=404)
+        
+        # 获取文件MIME类型
+        mime_type = attachment.mime_type or mimetypes.guess_type(file_path)[0] or 'application/octet-stream'
+        
+        # 读取文件内容
+        try:
+            with open(file_path, 'rb') as f:
+                file_content = f.read()
+        except IOError:
+            return JsonResponse({'code': 1, 'data': 'Error reading file'}, status=500)
+        
+        # 创建HTTP响应
+        response = HttpResponse(file_content, content_type=mime_type)
+        
+        # 设置文件下载头信息
+        # 对文件名进行URL编码以支持中文文件名
+        encoded_filename = quote(attachment.file_name.encode('utf-8'))
+        response['Content-Disposition'] = f'attachment; filename*=UTF-8\'\'{encoded_filename}'
+        response['Content-Length'] = len(file_content)
+        
+        # 添加缓存控制头
+        response['Cache-Control'] = 'private, max-age=3600'
+        
+        logger.info(f"User {member_id} downloaded attachment {attachment_id}: {attachment.file_name}")
+        
+        return response
+        
+    except Exception as e:
+        logger.error(f"Error downloading attachment {attachment_id}: {str(e)}")
+        return JsonResponse({'code': 1, 'data': f'Download failed: {str(e)}'}, status=500)

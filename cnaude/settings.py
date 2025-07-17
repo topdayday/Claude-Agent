@@ -122,12 +122,21 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 
+# Media files (uploads)
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
+
+# File upload settings
+FILE_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+DATA_UPLOAD_MAX_MEMORY_SIZE = 10 * 1024 * 1024  # 10MB
+FILE_UPLOAD_PERMISSIONS = 0o644
+
 # Default primary key field type
 # https://docs.djangoproject.com/en/3.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
-JWT_SECRET_KEY = '2YfKTgajQmLdG26B7PaOhyN1T8HnUiGJ3lM9wZHt'
+JWT_SECRET_KEY = '2YfKTgajQmLdG26B7PaOhyN1T8HnUiGJ3lM9wABC'
 JWT_ALGORITHM = 'HS256'
 USE_TZ = False

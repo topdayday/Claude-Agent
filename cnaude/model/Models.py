@@ -60,10 +60,36 @@ class Captcha(models.Model):
         app_label = 'captcha'
 
 
+class Attachment(models.Model):
+    id = models.AutoField(primary_key=True)
+    conversation_id = models.PositiveIntegerField(null=True, blank=True)
+    file_name = models.CharField(max_length=255, null=True, blank=True)
+    file_path = models.CharField(max_length=500, null=True, blank=True)
+    file_type = models.CharField(max_length=50, null=True, blank=True)  # image, document, etc.
+    file_size = models.PositiveIntegerField(null=True, blank=True)
+    mime_type = models.CharField(max_length=100, null=True, blank=True)
+    create_time = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        db_table = 't_attachment'
+        verbose_name = 'attachment'
+        verbose_name_plural = 'attachments'
+        app_label = 'attachment'
+
+    def __str__(self):
+        return self.file_name or str(self.id)
+
+
 class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
         fields = ('id','session_id', 'content_in',  'content_out', 'reason_out',  'member_id',  'model_type', 'create_time')
+
+
+class AttachmentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Attachment
+        fields = ('id', 'conversation_id', 'file_name', 'file_type', 'file_size', 'mime_type', 'create_time')
 
 
 class MemberSerializer(serializers.ModelSerializer):

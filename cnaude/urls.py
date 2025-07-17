@@ -19,6 +19,7 @@ from cnaude.view.Views import *
 urlpatterns = [
     # path('admin/', admin.site.urls),
     path('cnaude/assistant/', assistant),
+    path('cnaude/assistant_with_attachments/', assistant_with_attachments),
     path('cnaude/login/', login),
     path('cnaude/latest_session/', latest_session),
     path('cnaude/list_session/', list_session),
@@ -30,5 +31,6 @@ urlpatterns = [
     path('cnaude/member_edit/', member_edit),
     path('cnaude/del_conversation/', del_conversation),
     path('cnaude/list_llm/', list_llm),
+    path('cnaude/download_attachment/<int:attachment_id>/', download_attachment),
 
 ]
