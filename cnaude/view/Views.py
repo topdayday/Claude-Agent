@@ -33,35 +33,33 @@ from urllib.parse import quote
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-
-
 session_count_cache = {}
 
-md = markdown.Markdown(extensions=[
-    'markdown.extensions.fenced_code',
-    'markdown.extensions.codehilite',
-    'markdown.extensions.abbr',
-    'markdown.extensions.admonition',
-    'markdown.extensions.attr_list',
-    'markdown.extensions.def_list',
-    'markdown.extensions.footnotes',
-    'markdown.extensions.meta',
-    'markdown.extensions.nl2br',
-    'markdown.extensions.tables',
-    'markdown.extensions.toc',
-    'markdown.extensions.wikilinks',
-    'markdown.extensions.sane_lists',
-    'markdown.extensions.smarty',
-], extension_configs={
-    'markdown.extensions.codehilite': {
-        'css_class': 'highlight',
-        'use_pygments': True,
-        'noclasses': True,
-        'linenums': False,
-        'guess_lang': True,
-        'pygments_style': 'monokai'
-    }
-})
+# md = markdown.Markdown(extensions=[
+#     'markdown.extensions.fenced_code',
+#     'markdown.extensions.codehilite',
+#     'markdown.extensions.abbr',
+#     'markdown.extensions.admonition',
+#     'markdown.extensions.attr_list',
+#     'markdown.extensions.def_list',
+#     'markdown.extensions.footnotes',
+#     'markdown.extensions.meta',
+#     'markdown.extensions.nl2br',
+#     'markdown.extensions.tables',
+#     'markdown.extensions.toc',
+#     'markdown.extensions.wikilinks',
+#     'markdown.extensions.sane_lists',
+#     'markdown.extensions.smarty',
+# ], extension_configs={
+#     'markdown.extensions.codehilite': {
+#         'css_class': 'highlight',
+#         'use_pygments': True,
+#         'noclasses': True,
+#         'linenums': False,
+#         'guess_lang': True,
+#         'pygments_style': 'monokai'
+#     }
+# })
 # mdTools = MarkdownFixer()
 
 def get_md5(string):
@@ -398,13 +396,13 @@ def latest_session(request):
     for record in records:
         session_count_cache[record.session_id] = 1
         conversation_ids.append(record.id)
-    attachments = Attachment.objects.filter(conversation_id__in=conversation_ids)
-    attachments_serializer = AttachmentSerializer(attachments, many=True)
-    attachments_json = attachments_serializer.data    
+    # attachments = Attachment.objects.filter(conversation_id__in=conversation_ids)
+    # attachments_serializer = AttachmentSerializer(attachments, many=True)
+    # attachments_json = attachments_serializer.data    
     
     conversations_serializer = ConversationSerializer(records, many=True)
     conversations_json = conversations_serializer.data
-    return JsonResponse({'code': 0, 'data': conversations_json,'attachments':attachments_json})
+    return JsonResponse({'code': 0, 'data': conversations_json,'attachments':[]})
 
 
 @csrf_exempt
@@ -592,23 +590,38 @@ def list_llm(request):
     models = [
         {
             "name": "Gemini",
-            "modelId": 2
+            "modelId": 2,
+            "multimodal":1,
+            "desc":"综合能力超强",
+            "ver":"v2.5-Pro",
         },
         {
             "name": "Claude",
-            "modelId": 1
+            "modelId": 1,
+            "multimodal":1,
+            "desc":"编码能力超强",
+            "ver":"v4.0-sonnet",
         },
         {
             "name": "DeepSeek",
-            "modelId": 50
+            "modelId": 50,
+            "multimodal":0,
+            "desc":"数学推理超强",
+            "ver":"R1",
         },
         {
             "name": "Qwen",
-            "modelId": 40
+            "modelId": 40,
+            "multimodal":0,
+            "desc":"中文能力超强",
+            "ver":"max-2025",
         },
         {
             "name": "Llama",
-            "modelId": 10
+            "modelId": 10,
+            "multimodal":0,
+            "desc":"响应快且精准",
+            "ver":"v4-maverick",
         },
         
     ]
