@@ -13,13 +13,13 @@ model_data =[
     {
         "model_id": "us.anthropic.claude-sonnet-4-20250514-v1:0",
         "version": "bedrock-2023-05-31",
-        "max_output_tokens": 2048,
+        "max_output_tokens": 21333,
         "name": "claude-3-5",
     },
     {
         "model_id": "us.anthropic.claude-opus-4-20250514-v1:0",
         "version": "bedrock-2023-05-31",
-        "max_output_tokens": 10240,
+        "max_output_tokens": 21333,
         "name": "claude-3-5",
     },
     {
