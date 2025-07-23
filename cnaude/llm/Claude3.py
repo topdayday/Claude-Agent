@@ -236,7 +236,8 @@ def start_conversation_claude3(input_content, previous_chat_history=[], model_in
             if content['type'] == 'text':
                 output_content = content['text']
     except BaseException as e:
-        print(e.args)
+        logger.error(f"处理请求时出错: {e}")
+        output_content = f"error: {e}"
     return output_content
 
 
@@ -269,10 +270,12 @@ def start_conversation_claude3_with_documents(input_content=None, input_files=No
                 user_content.append(content_block)
             except Exception as e:
                 print(f"Error processing file {file_path}: {e}")
+                logger.error(f"Error processing file {file_path}: {e}")
                 continue
     
     # 如果没有任何内容，返回错误
     if not user_content:
+        logger.error("No content provided (neither text nor files)")
         raise ValueError("No content provided (neither text nor files)")
     
     message.append({
@@ -298,8 +301,8 @@ def start_conversation_claude3_with_documents(input_content=None, input_files=No
             if content['type'] == 'text':
                 output_content = content['text']
     except BaseException as e:
-        print(f"Error in Claude3 API call: {e.args}")
-    
+        logger.error(f"处理请求时出错: {e}")
+        output_content = f"error: {e}"
     return output_content
 
 

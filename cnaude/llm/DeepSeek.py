@@ -2,7 +2,8 @@ import boto3
 import json
 from botocore.exceptions import ClientError
 from botocore.client import Config
-
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 # 配置超时（单位：秒）
 # 你可以根据你的需求调整这些值
 timeout_config = Config(
@@ -43,8 +44,10 @@ def start_conversation_deepseek(prompt):
             else:
                 return content_out, None
     except (ClientError, Exception) as e:
+        logger.error(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
         print(f"ERROR: Can't invoke '{model_id}'. Reason: {e}")
-        return None,  None
+        return  f'error:{e}', None
+
 
 
 if __name__ == '__main__':

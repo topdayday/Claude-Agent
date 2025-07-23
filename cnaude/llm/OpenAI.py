@@ -1,6 +1,7 @@
 import os
 from openai import OpenAI
-
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 clientDeepSeek = OpenAI(
     api_key="api-key-deepseek",  

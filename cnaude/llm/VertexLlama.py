@@ -2,6 +2,8 @@ import requests
 import subprocess
 import json
 from json import JSONDecodeError
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 # 配置参数
 ENDPOINT = "ENDPOINT"
 REGION = "REGION"

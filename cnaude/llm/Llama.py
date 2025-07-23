@@ -1,6 +1,7 @@
 import boto3
 import json
-
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 model_data =[
     {
         "model_id": "us.meta.llama4-maverick-17b-instruct-v1:0",

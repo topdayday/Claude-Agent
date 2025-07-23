@@ -242,10 +242,11 @@ def start_conversation_gemini(content_in, previous_chat_history=[], model_index=
         output_content = message_out.candidates[0].content.parts[0].text
         
     except ResponseBlockedError as e:
-        logger.error(f"响应被阻止: {e.args}")
+        logger.error(f"响应被阻止: {e}")
+        output_content = f"error: {e}"
     except Exception as e:
         logger.error(f"处理请求时出错: {e}")
-    
+        output_content = f"error: {e}"
     return output_content
 
 

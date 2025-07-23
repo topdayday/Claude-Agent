@@ -62,12 +62,19 @@ def generate_conversation(client,
         "maxTokens": max_tokens,
     }
     # Send the message.
-    response = client.converse(
-        modelId=model_id,
-        messages=messages,
-        system=system_prompts,
-        inferenceConfig=inference_config,
-    )
+    try:
+        response = client.converse(
+            modelId=model_id,
+            messages=messages,
+            system=system_prompts,
+            inferenceConfig=inference_config,
+        )
+    except ClientError as e:
+        logger.error(f"Bedrock API error: {e}")
+        raise
+    except Exception as e:
+        logger.error(f"Unexpected error: {e}")
+        raise
 
     # Log token usage.
     # token_usage = response['usage']
@@ -106,6 +113,7 @@ def start_conversation_deep_seek_chat(content_in, previous_chat_history=[]):
     except ClientError as err:
         message = err.response['Error']['Message']
         logger.error("A client error occurred: %s", message)
+        content_out = f'error:{err}'
         # print(f"A client error occured: {message}")
     else:
         print(
