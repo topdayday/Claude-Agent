@@ -1,6 +1,8 @@
 import boto3
 import json
-
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 model_data =[
     {
         "model_id": "anthropic.claude-v2:1",
@@ -10,6 +12,7 @@ model_data =[
     },
 ]
 from botocore.client import Config
+
 
 # 配置超时（单位：秒）
 # 你可以根据你的需求调整这些值

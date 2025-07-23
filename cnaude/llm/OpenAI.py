@@ -1,5 +1,6 @@
 import os
 from openai import OpenAI
+import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 

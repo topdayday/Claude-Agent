@@ -1,5 +1,7 @@
 from vertexai.language_models import CodeChatModel,CodeGenerationModel
-
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
 
 # temperature
 # 温度取值范围【0-1】

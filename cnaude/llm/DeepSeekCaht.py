@@ -4,12 +4,11 @@
 Shows how to use the Converse API with DeepSeek-R1 (on demand).
 """
 
-import logging
-import boto3
 
+import boto3
 from botocore.client import Config
 from botocore.exceptions import ClientError
-
+import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 

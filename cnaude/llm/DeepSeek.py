@@ -2,6 +2,7 @@ import boto3
 import json
 from botocore.exceptions import ClientError
 from botocore.client import Config
+import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 # 配置超时（单位：秒）

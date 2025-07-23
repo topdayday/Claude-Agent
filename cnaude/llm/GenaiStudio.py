@@ -2,6 +2,10 @@ import base64
 import os
 from google import genai
 from google.genai import types
+import logging
+logger = logging.getLogger(__name__)
+logging.basicConfig(level=logging.INFO)
+
 
 client = genai.Client(
     api_key='app-key',
