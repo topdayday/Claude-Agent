@@ -58,7 +58,7 @@ def start_conversation_openai(input_content, previous_chat_history=[], model_ind
             model_id = 'deepseek-chat'
     elif model_index == 1:    
         model_client = clientQWen
-        model_id = 'qwen-max-2025-01-25'
+        model_id = 'qwen-turbo'
     try:
         response = model_client.chat.completions.create( 
           model= model_id,
