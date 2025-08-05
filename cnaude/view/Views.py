@@ -263,34 +263,45 @@ def determine_file_type(content_type, filename):
 
 
 def process_file_attachments(request, member_id):
-    """Process file attachments from request"""
+    """Process file attachments from request - 支持多种文件字段格式"""
     uploaded_files = []
     attachment_records = []
     
+    # 遍历所有文件字段，支持多种命名方式
     for key in request.FILES:
-        if key.startswith('attachments'):
-            uploaded_file = request.FILES[key]
-            
-            # Save file
-            file_info = save_uploaded_file(uploaded_file, member_id)
-            
-            # Determine file type
-            file_type = determine_file_type(file_info['content_type'], file_info['original_name'])
-            
-            uploaded_files.append({
-                'path': file_info['saved_path'],
-                'type': file_type
-            })
-            
-            # Prepare attachment record (will save after conversation is created)
-            attachment_records.append({
-                'file_name': file_info['original_name'],
-                'file_path': file_info['relative_path'],
-                'file_type': file_type,
-                'file_size': file_info['size'],
-                'mime_type': file_info['content_type']
-            })
+        # 获取该字段的所有文件（支持多文件上传）
+        file_list = request.FILES.getlist(key)
+        
+        for uploaded_file in file_list:
+            try:
+                # Save file
+                file_info = save_uploaded_file(uploaded_file, member_id)
+                
+                # Determine file type
+                file_type = determine_file_type(file_info['content_type'], file_info['original_name'])
+                
+                uploaded_files.append({
+                    'path': file_info['saved_path'],
+                    'type': file_type
+                })
+                
+                # Prepare attachment record (will save after conversation is created)
+                attachment_records.append({
+                    'file_name': file_info['original_name'],
+                    'file_path': file_info['relative_path'],
+                    'file_type': file_type,
+                    'file_size': file_info['size'],
+                    'mime_type': file_info['content_type']
+                })
+                
+                logger.info(f"Successfully processed file: {file_info['original_name']} for member {member_id}")
+                
+            except Exception as e:
+                logger.error(f"Error processing file {uploaded_file.name}: {str(e)}")
+                # 继续处理其他文件，不因单个文件失败而中断
+                continue
     
+    logger.info(f"Processed {len(uploaded_files)} files for member {member_id}")
     return uploaded_files, attachment_records
 
 
@@ -629,7 +640,7 @@ def list_llm(request):
             "ver":"v4-maverick",
         },
         {
-            "name": "PalmyraX5",
+            "name": "Palmyra",
             "modelId": 60,
             "multimodal":0,
             "desc":"超长上下文",
