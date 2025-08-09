@@ -13,6 +13,7 @@ from cnaude.llm.DeepSeekCaht import start_conversation_deep_seek_chat
 from cnaude.llm.DeepSeekCaht import translate_conversation_his_deep_seek
 from cnaude.llm.OpenAI import translate_conversation_his_openai
 from cnaude.llm.PalmyraX5 import start_conversation_palmyra_x5, translate_conversation_his_palmyra
+from cnaude.llm.GptOss import start_conversation_gptoss, translate_conversation_his_gptoss
 from cnaude.utils.JwtTool import obtain_jwt_token, protected_view, generate_api_token
 from cnaude.utils.Captcha import captcha_base64
 # from cnaude.utils.markdown_fixer import MarkdownFixer
@@ -143,6 +144,10 @@ def process_llm_request(model_type, content_in, session_id, uploaded_files=None)
     elif m_type == '60':  # PalmyraX5
         previous_content_in = translate_conversation_his_palmyra(records)
         content_out = start_conversation_palmyra_x5(content_in, previous_content_in)
+        
+    elif m_type == '70':  # GPT-OSS 120B
+        previous_content_in = translate_conversation_his_gptoss(records)
+        content_out = start_conversation_gptoss(content_in, previous_content_in, 0)
         
     else:
         return None, None, 'Invalid model type'
@@ -616,7 +621,7 @@ def list_llm(request):
             "modelId": 1,
             "multimodal":1,
             "desc":"编码能力超强",
-            "ver":"v4.0-sonnet",
+            "ver":"v4.1",
         },
         {
             "name": "DeepSeek",
@@ -645,6 +650,13 @@ def list_llm(request):
             "multimodal":0,
             "desc":"超长上下文",
             "ver":"X5",
+        },
+        {
+            "name": "GPT-OSS",
+            "modelId": 70,
+            "multimodal":0,
+            "desc":"OpenAI开源",
+            "ver":"120B",
         },
         
     ]
