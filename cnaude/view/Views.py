@@ -14,7 +14,7 @@ from cnaude.llm.DeepSeekCaht import translate_conversation_his_deep_seek
 from cnaude.llm.OpenAI import translate_conversation_his_openai
 from cnaude.llm.PalmyraX5 import start_conversation_palmyra_x5, translate_conversation_his_palmyra
 from cnaude.llm.GptOss import start_conversation_gptoss, translate_conversation_his_gptoss
-from cnaude.llm.Grok import start_conversation_grok, translate_conversation_his_grok
+from cnaude.llm.Grok import start_conversation_grok, start_conversation_grok_with_documents, translate_conversation_his_grok
 from cnaude.utils.JwtTool import obtain_jwt_token, protected_view, generate_api_token
 from cnaude.utils.Captcha import captcha_base64
 # from cnaude.utils.markdown_fixer import MarkdownFixer
@@ -154,7 +154,14 @@ def process_llm_request(model_type, content_in, session_id, uploaded_files=None)
         
     elif m_type == '80':  # Grok
         previous_content_in = translate_conversation_his_grok(records)
-        content_out = start_conversation_grok(content_in, previous_content_in)
+        if uploaded_files:
+            content_out = start_conversation_grok_with_documents(
+                input_content=content_in if content_in else None,
+                input_files=uploaded_files,
+                previous_chat_history=previous_content_in
+            )
+        else:
+            content_out = start_conversation_grok(content_in, previous_content_in)
         
     else:
         return None, None, 'Invalid model type'
@@ -668,7 +675,7 @@ def list_llm(request):
         {
             "name": "Grok",
             "modelId": 80,
-            "multimodal":0,
+            "multimodal":1,
             "desc":"写作推理",
             "ver":"4",
         },
