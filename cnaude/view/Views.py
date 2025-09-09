@@ -14,6 +14,7 @@ from cnaude.llm.DeepSeekCaht import translate_conversation_his_deep_seek
 from cnaude.llm.OpenAI import translate_conversation_his_openai
 from cnaude.llm.PalmyraX5 import start_conversation_palmyra_x5, translate_conversation_his_palmyra
 from cnaude.llm.GptOss import start_conversation_gptoss, translate_conversation_his_gptoss
+from cnaude.llm.Grok import start_conversation_grok, translate_conversation_his_grok
 from cnaude.utils.JwtTool import obtain_jwt_token, protected_view, generate_api_token
 from cnaude.utils.Captcha import captcha_base64
 # from cnaude.utils.markdown_fixer import MarkdownFixer
@@ -36,6 +37,8 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 session_count_cache = {}
+
+memery_len = 50
 
 # md = markdown.Markdown(extensions=[
 #     'markdown.extensions.fenced_code',
@@ -89,7 +92,7 @@ def check_daily_usage_limit(member_id):
 
 def get_conversation_history(session_id):
     """Get conversation history for a session"""
-    return Conversation.objects.filter(session_id=session_id, del_flag=False)[:5]
+    return Conversation.objects.filter(session_id=session_id, del_flag=False)[:memery_len]
 
 
 def process_llm_request(model_type, content_in, session_id, uploaded_files=None):
@@ -148,6 +151,10 @@ def process_llm_request(model_type, content_in, session_id, uploaded_files=None)
     elif m_type == '70':  # GPT-OSS 120B
         previous_content_in = translate_conversation_his_gptoss(records)
         content_out = start_conversation_gptoss(content_in, previous_content_in, 0)
+        
+    elif m_type == '80':  # Grok
+        previous_content_in = translate_conversation_his_grok(records)
+        content_out = start_conversation_grok(content_in, previous_content_in)
         
     else:
         return None, None, 'Invalid model type'
@@ -657,6 +664,13 @@ def list_llm(request):
             "multimodal":0,
             "desc":"OpenAI开源",
             "ver":"120B",
+        },
+        {
+            "name": "Grok",
+            "modelId": 80,
+            "multimodal":0,
+            "desc":"写作推理",
+            "ver":"4",
         },
         
     ]
