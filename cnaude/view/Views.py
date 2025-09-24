@@ -2,7 +2,7 @@ from cnaude.llm.Claude2 import start_conversation_claude2, translate_conversatio
 from cnaude.llm.Claude3 import start_conversation_claude3, start_conversation_claude3_with_documents, translate_conversation_his_v3
 from cnaude.llm.Codey import start_conversation_codey
 from cnaude.llm.Gemini import start_conversation_gemini, translate_conversation_his_gemini
-from cnaude.llm.GenaiStudio import start_conversation_genai, translate_conversation_his_genai
+# from cnaude.llm.GenaiStudio import start_conversation_genai, translate_conversation_his_genai
 from cnaude.llm.Llama import start_conversation_llama, translate_conversation_his_llama
 from cnaude.llm.Mistral import start_conversation_mistral, translate_conversation_his_mistral
 from cnaude.llm.PaLM2 import start_conversation_palm2
@@ -136,9 +136,9 @@ def process_llm_request(model_type, content_in, session_id, uploaded_files=None)
         else:
             content_out = start_conversation_gemini(content_in, previous_content_in)
             
-    elif m_type == '20':  # GenAI Studio
-        previous_content_in = translate_conversation_his_genai(records)
-        content_out = start_conversation_genai(content_in, previous_content_in)
+    # elif m_type == '20':  # GenAI Studio
+    #     previous_content_in = translate_conversation_his_genai(records)
+    #     content_out = start_conversation_genai(content_in, previous_content_in)
         
     elif m_type == '10':  # Llama
         previous_content_in = translate_conversation_his_llama(records)
