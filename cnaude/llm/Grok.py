@@ -9,7 +9,7 @@ logging.basicConfig(level=logging.INFO)
 
 # Setup basic variables
 # Auth Config
-compartment_id = "ocid1.tenancy.oc1"
+compartment_id = "ocid1.tenancy.oc1..aaaaaaaai5eyg3zscen25zdcxlsajdnms4bcjthoqthdkqfef55pbcs67o7a"
 CONFIG_PROFILE = "DEFAULT"
 config = oci.config.from_file('~/.oci/config', CONFIG_PROFILE)
 
@@ -19,7 +19,7 @@ endpoint = "https://inference.generativeai.us-chicago-1.oci.oraclecloud.com"
 # Model configuration
 models_data = [
     {
-        "model_id": "ocid1.generativeaimodel.oc1.us-chicago-1",
+        "model_id": "ocid1.generativeaimodel.oc1.us-chicago-1.amaaaaaask7dceya3bsfz4ogiuv3yc7gcnlry7gi3zzx6tnikg6jltqszm2q",
         "max_tokens": 131000,
         "temperature": 1.0,
         "top_p": 1.0,
