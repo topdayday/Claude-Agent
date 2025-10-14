@@ -628,14 +628,14 @@ def list_llm(request):
             "modelId": 2,
             "multimodal":1,
             "desc":"综合能力超强",
-            "ver":"v2.5-Pro",
+            "ver":"v2.5",
         },
         {
             "name": "Claude",
             "modelId": 1,
             "multimodal":1,
             "desc":"编码能力超强",
-            "ver":"v4.1",
+            "ver":"v4.5",
         },
         {
             "name": "DeepSeek",
@@ -649,14 +649,14 @@ def list_llm(request):
             "modelId": 40,
             "multimodal":0,
             "desc":"中文能力超强",
-            "ver":"max-2025",
+            "ver":"max",
         },
         {
             "name": "Llama",
             "modelId": 10,
             "multimodal":0,
             "desc":"响应快且精准",
-            "ver":"v4-maverick",
+            "ver":"v4",
         },
         {
             "name": "Palmyra",

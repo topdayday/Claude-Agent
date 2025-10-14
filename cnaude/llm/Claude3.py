@@ -9,17 +9,23 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 model_data =[
+     {
+        "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
+        "version": "bedrock-2023-05-31",
+        "max_output_tokens": 21333,
+        "name": "claude-4-5",
+    },
     {
         "model_id": "us.anthropic.claude-opus-4-1-20250805-v1:0",
         "version": "bedrock-2023-05-31",
         "max_output_tokens": 21333,
-        "name": "claude-3-5",
+        "name": "claude-4-1",
     },
     {
         "model_id": "us.anthropic.claude-sonnet-4-20250514-v1:0",
         "version": "bedrock-2023-05-31",
         "max_output_tokens": 21333,
-        "name": "claude-3-5",
+        "name": "claude-4-0",
     },
     {
         "model_id": "us.anthropic.claude-opus-4-20250514-v1:0",
