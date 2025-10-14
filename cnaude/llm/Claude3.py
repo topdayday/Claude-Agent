@@ -232,7 +232,7 @@ def start_conversation_claude3(input_content, previous_chat_history=[], model_in
         ])
     body = json.dumps({
         "messages": message,
-        "temperature": 0.9,
+        # "temperature": 0.9,
         "max_tokens": claude_model['max_output_tokens'],
         "top_k": 250,
         "top_p": 0.9,
