@@ -296,7 +296,7 @@ def start_conversation_claude3_with_documents(input_content=None, input_files=No
     
     body = json.dumps({
         "messages": message,
-        "temperature": 0.9,
+        # "temperature": 0.9,
         "max_tokens": claude_model['max_output_tokens'],
         "top_k": 250,
         "top_p": 0.9,
