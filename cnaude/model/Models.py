@@ -25,8 +25,6 @@ class Conversation(models.Model):
         return str(self.id)
 
 
-from django.db import models
-
 
 class Member(models.Model):
     id = models.AutoField(primary_key=True, verbose_name='')
@@ -54,7 +52,7 @@ class Captcha(models.Model):
     create_time = models.DateTimeField()
 
     class Meta:
-        db_table = 't_captcha'  # 指定数据库表名
+        db_table = 't_captcha' 
         verbose_name = 'captcha'
         verbose_name_plural = 'captcha'
         app_label = 'captcha'
@@ -80,6 +78,24 @@ class Attachment(models.Model):
         return self.file_name or str(self.id)
 
 
+class ConversationFav(models.Model):
+    id = models.AutoField(primary_key=True)
+    member_id = models.IntegerField(null=False)
+    session_id = models.CharField(max_length=32, null=True, blank=True)
+    title = models.CharField(max_length=255, null=True, blank=True)
+    del_flag = models.BooleanField(default=False)
+    create_time = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        db_table = 't_conversation_fav'
+        verbose_name = 'conversation_fav'
+        verbose_name_plural = 'conversation_fav'
+        app_label = 'conversation'
+
+    def __str__(self):
+        return self.title or str(self.id)
+
+
 class ConversationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Conversation
@@ -96,3 +112,9 @@ class MemberSerializer(serializers.ModelSerializer):
     class Meta:
         model = Member
         fields = ('id','login_name', 'mobile',  'email', 'create_time', 'last_login_time')
+        
+        
+class ConversationFavSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = ConversationFav
+        fields = ('id', 'member_id', 'session_id', 'title', 'del_flag', 'create_time')
