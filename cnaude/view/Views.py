@@ -2,6 +2,7 @@ from cnaude.llm.Claude2 import start_conversation_claude2, translate_conversatio
 from cnaude.llm.Claude3 import start_conversation_claude3, start_conversation_claude3_with_documents, translate_conversation_his_v3
 from cnaude.llm.Codey import start_conversation_codey
 from cnaude.llm.Gemini import start_conversation_gemini, translate_conversation_his_gemini
+from cnaude.llm.Gemini3 import start_conversation_gemini3, start_conversation_gemini3_with_documents, translate_conversation_his_gemini3
 # from cnaude.llm.GenaiStudio import start_conversation_genai, translate_conversation_his_genai
 from cnaude.llm.Llama import start_conversation_llama, translate_conversation_his_llama
 from cnaude.llm.Mistral import start_conversation_mistral, translate_conversation_his_mistral
@@ -162,7 +163,18 @@ def process_llm_request(model_type, content_in, session_id, uploaded_files=None)
             )
         else:
             content_out = start_conversation_grok(content_in, previous_content_in)
-        
+
+    elif m_type == '90':  # Gemini 3
+        previous_content_in = translate_conversation_his_gemini3(records)
+        if uploaded_files:
+            content_out = start_conversation_gemini3_with_documents(
+                input_content=content_in if content_in else "请分析这些文件",
+                input_files=uploaded_files,
+                previous_chat_history=previous_content_in
+            )
+        else:
+            content_out = start_conversation_gemini3(content_in, previous_content_in)
+
     else:
         return None, None, 'Invalid model type'
     
@@ -679,7 +691,14 @@ def list_llm(request):
             "desc":"写作推理",
             "ver":"4",
         },
-        
+        {
+            "name": "Gemini3",
+            "modelId": 90,
+            "multimodal":1,
+            "desc":"深度思考推理",
+            "ver":"v3.0",
+        },
+
     ]
     return JsonResponse({'code': 0, 'data': models})
 
