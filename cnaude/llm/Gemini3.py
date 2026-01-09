@@ -20,6 +20,14 @@ models_data = [
         "thinking_level": "HIGH",
     },
     {
+        "model_id": "gemini-3-flash-preview",
+        "max_output_tokens": 65535,
+        "temperature": 1.0,
+        "top_p": 0.95,
+        "description": "Gemini 3 flash with thinking capabilities",
+        "thinking_level": "HIGH",
+    },
+    {
         "model_id": "gemini-2.5-pro",
         "max_output_tokens": 65535,
         "temperature": 1.0,

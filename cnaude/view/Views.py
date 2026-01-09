@@ -164,16 +164,28 @@ def process_llm_request(model_type, content_in, session_id, uploaded_files=None)
         else:
             content_out = start_conversation_grok(content_in, previous_content_in)
 
-    elif m_type == '90':  # Gemini 3
+    elif m_type == '90':  # Gemini 3 pro
         previous_content_in = translate_conversation_his_gemini3(records)
         if uploaded_files:
             content_out = start_conversation_gemini3_with_documents(
                 input_content=content_in if content_in else "请分析这些文件",
                 input_files=uploaded_files,
-                previous_chat_history=previous_content_in
+                previous_chat_history=previous_content_in,
+                model_index = 0
             )
         else:
-            content_out = start_conversation_gemini3(content_in, previous_content_in)
+            content_out = start_conversation_gemini3(content_in, previous_content_in, model_index = 0 )
+    elif m_type == '91':  # Gemini 3 flash
+        previous_content_in = translate_conversation_his_gemini3(records)
+        if uploaded_files:
+            content_out = start_conversation_gemini3_with_documents(
+                input_content=content_in if content_in else "请分析这些文件",
+                input_files=uploaded_files,
+                previous_chat_history=previous_content_in,
+                model_index = 1
+            )
+        else:
+            content_out = start_conversation_gemini3(content_in, previous_content_in, model_index = 1)        
 
     else:
         return None, None, 'Invalid model type'
@@ -636,18 +648,32 @@ def register(request):
 def list_llm(request):
     models = [
         {
-            "name": "Gemini",
+            "name": "Gemini3",
+            "modelId": 90,
+            "multimodal":1,
+            "desc":"深度思考推理",
+            "ver":"pro",
+        },
+        {
+            "name": "Gemini3",
+            "modelId": 91,
+            "multimodal":1,
+            "desc":"推理速度快",
+            "ver":"flash",
+        },
+        {
+            "name": "Gemini2.5",
             "modelId": 2,
             "multimodal":1,
             "desc":"综合能力超强",
-            "ver":"v2.5",
+            "ver":"pro",
         },
         {
-            "name": "Claude",
+            "name": "Claude4.5",
             "modelId": 1,
             "multimodal":1,
             "desc":"编码能力超强",
-            "ver":"v4.5",
+            "ver":"sonnet",
         },
         {
             "name": "DeepSeek",
@@ -691,13 +717,7 @@ def list_llm(request):
             "desc":"写作推理",
             "ver":"4",
         },
-        {
-            "name": "Gemini3",
-            "modelId": 90,
-            "multimodal":1,
-            "desc":"深度思考推理",
-            "ver":"v3.0",
-        },
+      
 
     ]
     return JsonResponse({'code': 0, 'data': models})
