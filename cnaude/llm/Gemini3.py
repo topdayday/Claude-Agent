@@ -9,6 +9,8 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
+myapi_key='your key'
+
 # 模型配置数据
 models_data = [
     {
@@ -50,14 +52,12 @@ def get_genai_client():
     创建并返回 GenAI 客户端
     需要设置环境变量 GOOGLE_CLOUD_API_KEY
     """
- 
-    api_key = 'change to your api_key' #
-    if not api_key:
+    if not myapi_key:
         raise ValueError("GOOGLE_CLOUD_API_KEY environment variable not set")
 
     return genai.Client(
         vertexai=True,
-        api_key=api_key,
+        api_key=myapi_key,
     )
 
 def encode_file_to_base64(file_path):
