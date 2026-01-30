@@ -878,3 +878,29 @@ def del_fav_session(request):
     m_id = token_info['id']
     ConversationFav.objects.filter(member_id=m_id, session_id=s_id).delete()
     return JsonResponse({'code': 0, 'data': 'success'})
+
+
+    
+@csrf_exempt
+@require_http_methods(["POST"])
+def update_fav_session(request):
+    token_info = get_token_info(request)
+    if not token_info:
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
+    s_id = request.POST.get('session_id')
+    if not s_id:
+        return JsonResponse({'code': 1, 'data': 'Invalid session'})
+    m_id = token_info['id']
+
+    title = request.POST.get('title')
+    if not title:
+        return JsonResponse({'code': 1, 'data': 'Title cannot be empty'})
+
+    fav = ConversationFav.objects.filter(member_id=m_id, session_id=s_id).first()
+    if not fav:
+        return JsonResponse({'code': 1, 'data': 'Favorite session not found'})
+
+    fav.title = title
+    fav.save()
+
+    return JsonResponse({'code': 0, 'data': 'success'})

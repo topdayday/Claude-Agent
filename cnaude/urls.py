@@ -34,5 +34,6 @@ urlpatterns = [
     path('cnaude/list_fav_session/', list_fav_session),
     path('cnaude/add_fav_session/', add_fav_session),
     path('cnaude/del_fav_session/', del_fav_session),
+    path('cnaude/update_fav_session/', update_fav_session),
     path('cnaude/download_attachment/<int:attachment_id>/', download_attachment),
 ]
