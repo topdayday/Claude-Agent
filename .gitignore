@@ -1,1 +1,3 @@
 *.pyc
+cnaude/llm/_pycache_/*
+*/_pycache_/*

@@ -24,7 +24,7 @@ from django.views.decorators.csrf import csrf_exempt
 import markdown
 import hashlib
 from django.views.decorators.http import require_http_methods
-from cnaude.model.Models import Conversation, Member, Captcha, Attachment, ConversationSerializer, MemberSerializer, AttachmentSerializer
+from cnaude.model.Models import Conversation, ConversationFav, Member, Captcha, Attachment, ConversationSerializer, MemberSerializer, AttachmentSerializer, ConversationFavSerializer
 from datetime import datetime, timedelta
 import logging
 import os,json
@@ -791,3 +791,90 @@ def download_attachment(request, attachment_id):
     except Exception as e:
         logger.error(f"Error downloading attachment {attachment_id}: {str(e)}")
         return JsonResponse({'code': 1, 'data': f'Download failed: {str(e)}'}, status=500)
+
+
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def list_fav_session(request):
+    token_info = get_token_info(request)
+    page_number = request.POST.get('page_number')
+    filter_date = request.POST.get('filter_date')
+    title = request.POST.get('title')
+    if filter_date:
+        filter_date += ' 23:59:59'
+        try:
+            filter_date = datetime.strptime(filter_date, '%Y-%m-%d %H:%M:%S')
+        except ValueError:
+            return JsonResponse({'code': 1, 'data': 'Invalid date format'})
+
+    if not page_number:
+        page_number = 0
+    try:
+        page_number = int(page_number)
+    except BaseException as be:
+        print(be.args)
+        return JsonResponse({'code': 1, 'data': 'Invalid parameter'})
+    if not token_info:
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
+    m_id = token_info['id']
+
+    # 构建基础查询
+    query = ConversationFav.objects.filter(member_id=m_id)
+
+    # 添加日期过滤
+    if filter_date:
+        query = query.filter(create_time__lte=filter_date)
+
+    # 添加标题模糊搜索
+    if title:
+        query = query.filter(title__icontains=title)
+
+    # 排序和分页
+    records = query.order_by('-id')[page_number * 30:(page_number + 1) * 30]
+
+    conversations_fav_serializer = ConversationFavSerializer(records, many=True)
+    conversations_fav_json = conversations_fav_serializer.data
+    return JsonResponse({'code': 0, 'data': conversations_fav_json})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def add_fav_session(request):
+    token_info = get_token_info(request)
+    if not token_info:
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
+    s_id = request.POST.get('session_id')
+    if not s_id:
+        return JsonResponse({'code': 1, 'data': 'Invalid session'})
+    m_id = token_info['id']
+
+    tilte = request.POST.get('tilte')
+    conversation =Conversation.objects.filter(member_id=m_id, session_id=s_id).first()
+    if not conversation:
+         return JsonResponse({'code': 1, 'data': 'Invalid m_id session_id'})
+    if not tilte:
+        tilte =conversation.content_in
+    record = ConversationFav(
+        member_id=m_id,
+        session_id=s_id,
+        title=tilte,
+        create_time=datetime.now()
+    )
+    record.save()    
+    return JsonResponse({'code': 0, 'data': 'success'})
+
+
+@csrf_exempt
+@require_http_methods(["POST"])
+def del_fav_session(request):
+    token_info = get_token_info(request)
+    if not token_info:
+        return JsonResponse({'code': -1, 'data': 'Token verification failed'})
+    s_id = request.POST.get('session_id')
+    if not s_id:
+        return JsonResponse({'code': 1, 'data': 'Invalid session'})
+    m_id = token_info['id']
+    ConversationFav.objects.filter(member_id=m_id, session_id=s_id).delete()
+    return JsonResponse({'code': 0, 'data': 'success'})

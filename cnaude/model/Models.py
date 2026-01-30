@@ -83,7 +83,6 @@ class ConversationFav(models.Model):
     member_id = models.IntegerField(null=False)
     session_id = models.CharField(max_length=32, null=True, blank=True)
     title = models.CharField(max_length=255, null=True, blank=True)
-    del_flag = models.BooleanField(default=False)
     create_time = models.DateTimeField(auto_now=True)
 
     class Meta:
@@ -117,4 +116,4 @@ class MemberSerializer(serializers.ModelSerializer):
 class ConversationFavSerializer(serializers.ModelSerializer):
     class Meta:
         model = ConversationFav
-        fields = ('id', 'member_id', 'session_id', 'title', 'del_flag', 'create_time')
+        fields = ('id', 'member_id', 'session_id', 'title', 'create_time')
