@@ -428,13 +428,14 @@ def latest_session(request):
     token_info = get_token_info(request)
     page_number = request.POST.get('page_number')
     filter_date = request.POST.get('filter_date')
+    title = request.POST.get('title')
     if filter_date:
         filter_date += ' 23:59:59'
         try:
             filter_date = datetime.strptime(filter_date, '%Y-%m-%d %H:%M:%S')
         except ValueError:
             return JsonResponse({'code': 1, 'data': 'Invalid date format'})
-        
+
     if not page_number:
         page_number = 0
     try:
@@ -445,20 +446,29 @@ def latest_session(request):
     if not token_info:
         return JsonResponse({'code': -1, 'data': 'Token verification failed'})
     m_id = token_info['id']
+
+    # 构建基础查询
+    query = Conversation.objects.filter(member_id=m_id, del_flag=0, title_flag=True)
+
+    # 添加日期过滤
     if filter_date:
-        records = Conversation.objects.filter(member_id=m_id, del_flag=0, title_flag=True, create_time__lte=filter_date).order_by('-id')[
-              page_number * 30:(page_number + 1) * 30]
-    else:    
-        records = Conversation.objects.filter(member_id=m_id, del_flag=0, title_flag=True).order_by('-id')[
-                page_number * 30:(page_number + 1) * 30]
-    conversation_ids = []    
+        query = query.filter(create_time__lte=filter_date)
+
+    # 添加标题模糊搜索（对content_in进行匹配）
+    if title:
+        query = query.filter(content_in__icontains=title)
+
+    # 排序和分页
+    records = query.order_by('-id')[page_number * 30:(page_number + 1) * 30]
+
+    conversation_ids = []
     for record in records:
         session_count_cache[record.session_id] = 1
         conversation_ids.append(record.id)
     # attachments = Attachment.objects.filter(conversation_id__in=conversation_ids)
     # attachments_serializer = AttachmentSerializer(attachments, many=True)
-    # attachments_json = attachments_serializer.data    
-    
+    # attachments_json = attachments_serializer.data
+
     conversations_serializer = ConversationSerializer(records, many=True)
     conversations_json = conversations_serializer.data
     return JsonResponse({'code': 0, 'data': conversations_json,'attachments':[]})
@@ -497,6 +507,12 @@ def del_session(request):
     if not s_id:
         return JsonResponse({'code': 1, 'data': 'Invalid session'})
     m_id = token_info['id']
+
+    # 检查该session是否被收藏
+    fav_exists = ConversationFav.objects.filter(member_id=m_id, session_id=s_id).exists()
+    if fav_exists:
+        return JsonResponse({'code': 1, 'data': 'Cannot delete favorited session. Please remove from favorites first.'})
+
     Conversation.objects.filter(member_id=m_id, session_id=s_id).update(del_flag=1)
     return JsonResponse({'code': 0, 'data': 'success'})
 
