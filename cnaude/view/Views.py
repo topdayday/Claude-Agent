@@ -26,6 +26,7 @@ import hashlib
 from django.views.decorators.http import require_http_methods
 from cnaude.model.Models import Conversation, ConversationFav, Member, Captcha, Attachment, ConversationSerializer, MemberSerializer, AttachmentSerializer, ConversationFavSerializer
 from datetime import datetime, timedelta
+from django.db.models import Q
 import logging
 import os,json
 from django.core.files.storage import default_storage
@@ -454,9 +455,9 @@ def latest_session(request):
     if filter_date:
         query = query.filter(create_time__lte=filter_date)
 
-    # 添加标题模糊搜索（对content_in进行匹配）
+    # 添加标题模糊搜索（对content_in或content_out进行匹配）
     if title:
-        query = query.filter(content_in__icontains=title)
+        query = query.filter(Q(content_in__icontains=title) | Q(content_out__icontains=title))
 
     # 排序和分页
     records = query.order_by('-id')[page_number * 30:(page_number + 1) * 30]
