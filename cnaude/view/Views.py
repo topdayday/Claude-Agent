@@ -866,12 +866,19 @@ def add_fav_session(request):
     if not s_id:
         return JsonResponse({'code': 1, 'data': 'Invalid session'})
     m_id = token_info['id']
-    conversation =ConversationFav.objects.filter(member_id=m_id, session_id=s_id).first()
-    if conversation:
+    conversation_fav =ConversationFav.objects.filter(member_id=m_id, session_id=s_id).first()
+    if conversation_fav:
          return JsonResponse({'code': 1, 'data': 'success!'})
+    conversation = Conversation.objects.filter(member_id=m_id, session_id=s_id).first()    
+    title_text = None
+    if conversation:
+        title_text = conversation.content_in
+        if not title_text:
+             title_text = conversation.content_out
     record = ConversationFav(
         member_id=m_id,
         session_id=s_id,
+        title=title_text,
         create_time=datetime.now()
     )
     record.save()    
