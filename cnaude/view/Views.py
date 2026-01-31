@@ -872,7 +872,7 @@ def add_fav_session(request):
     if conversation:
          return JsonResponse({'code': 1, 'data': 'success!'})
     if not tilte:
-        tilte =conversation.content_in
+        tilte =conversation.title
     record = ConversationFav(
         member_id=m_id,
         session_id=s_id,
