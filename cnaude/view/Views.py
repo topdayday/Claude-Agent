@@ -867,7 +867,7 @@ def add_fav_session(request):
     m_id = token_info['id']
 
     tilte = request.POST.get('tilte')
-    conversation =Conversation.objects.filter(member_id=m_id, session_id=s_id).first()
+    conversation =ConversationFav.objects.filter(member_id=m_id, session_id=s_id).first()
     if not conversation:
          return JsonResponse({'code': 1, 'data': 'Invalid m_id session_id'})
     if not tilte:
