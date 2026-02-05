@@ -9,7 +9,11 @@ import logging
 logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
-myapi_key='your key'
+myapi_key='your app key'
+
+tools = [
+    types.Tool(google_search=types.GoogleSearch()),
+]
 
 # 模型配置数据
 models_data = [
@@ -194,6 +198,7 @@ def start_conversation_gemini3(content_in, previous_chat_history=[], model_index
 
         # 配置生成参数
         generate_content_config = types.GenerateContentConfig(
+            tools = tools,
             temperature=model_data['temperature'],
             top_p=model_data['top_p'],
             max_output_tokens=model_data['max_output_tokens'],
@@ -300,6 +305,7 @@ def start_conversation_gemini3_with_documents(input_content=None, input_files=No
 
         # 配置生成参数
         generate_content_config = types.GenerateContentConfig(
+            tools = tools,
             temperature=model_data['temperature'],
             top_p=model_data['top_p'],
             max_output_tokens=model_data['max_output_tokens'],
@@ -355,7 +361,7 @@ def start_conversation_gemini3_with_documents(input_content=None, input_files=No
 if __name__ == '__main__':
     # 测试纯文本对话
     print("=== 测试纯文本对话 ===")
-    output = start_conversation_gemini3("你好，请介绍一下你自己")
+    output = start_conversation_gemini3("你好，今天时几号？")
     print(f"文本对话: {output}")
 
     # # 测试带图片的对话
