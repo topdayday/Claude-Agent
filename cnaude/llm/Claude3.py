@@ -9,7 +9,13 @@ logger = logging.getLogger(__name__)
 logging.basicConfig(level=logging.INFO)
 
 model_data =[
-     {
+    {
+        "model_id": "us.anthropic.claude-opus-4-6-v1",
+        "version": "bedrock-2023-05-31",
+        "max_output_tokens": 21333,
+        "name": "claude-4-6",
+    },
+    {
         "model_id": "us.anthropic.claude-sonnet-4-5-20250929-v1:0",
         "version": "bedrock-2023-05-31",
         "max_output_tokens": 21333,
@@ -317,11 +323,11 @@ def start_conversation_claude3_with_documents(input_content=None, input_files=No
     return output_content
 
 
-# if __name__ == '__main__':
+if __name__ == '__main__':
     # 测试原始文本功能
     # print("=== 测试文本对话 ===")
-    # output = start_conversation_claude3('what is your name ?', None)
-    # print(output)
+    output = start_conversation_claude3('what is your name ?', None)
+    print(output)
     
     # 测试文档支持功能的示例
     # print("\n=== 文档支持功能使用示例 ===")
